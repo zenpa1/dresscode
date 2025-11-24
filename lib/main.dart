@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:dresscode/models/clothing_item.dart';
+import 'package:dresscode/models/outfit.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive and register adapters. Boxes will be opened in the
+  // Splash Screen as requested.
+  await Hive.initFlutter();
+  Hive.registerAdapter(ClothingItemAdapter());
+  Hive.registerAdapter(OutfitAdapter());
+
   runApp(const MyApp());
 }
 
@@ -28,9 +39,65 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // Route setup: SplashScreen will open boxes and then navigate to Home.
+      initialRoute: '/',
+      routes: {
+        '/': (_) => const SplashScreen(),
+        '/home': (_) => const MyHomePage(title: 'Flutter Demo Home Page'),
+      },
+    );
+  }
+}
+
+/// Minimal splash screen placeholder. Open boxes and initialize app state
+/// here (not done in `main()`).
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      // Open boxes here (we registered adapters in main()).
+      await Hive.openBox('closet_box');
+      await Hive.openBox('outfits_box');
+
+      // After initialization, navigate to home.
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      // If initialization fails, keep showing the splash and log the error.
+      // In a real app you might show an error screen or retry.
+      // For now, print to console for debugging.
+      // ignore: avoid_print
+      print('Failed to initialize app: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(height: 12),
+            Text('Loading...'),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -102,7 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('You have pushed the button this many times:'),
             Text(
