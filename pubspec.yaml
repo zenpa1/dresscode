@@ -70,7 +70,7 @@ flutter:
   fonts:
     - family: Futura
       fonts:
-        - asset: assets/fonts/Futura-Regular.ttf
+        - asset: assets/fonts/FuturaCyrillicBook.ttf
 
   # To add assets to your application, add an assets section, like this:
   # An image asset can refer to one or more resolution-specific "variants", see
