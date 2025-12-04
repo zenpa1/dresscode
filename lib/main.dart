@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Dresscode',
       theme: AppTheme.light, // Assumed AppTheme is defined
       // Route setup: SplashScreen will open boxes and then navigate to Home.
