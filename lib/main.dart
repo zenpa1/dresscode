@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:dresscode/models/clothing_item.dart'; // Assumed model file
 import 'package:dresscode/models/outfit.dart'; // Assumed model file
 import 'package:dresscode/utils/theme.dart'; // Assumed theme file
+import 'package:dresscode/screens/home_closet.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +32,9 @@ class MyApp extends StatelessWidget {
       routes: {
         // Route '/' points to your animated splash screen
         '/': (_) => const SplashScreen(),
-        // NOTE: The '/home' route has been removed as the target (MyHomePage) was removed.
-        // You will need to add a new destination screen here later.
+        // NOTE: You can define an explicit named route for home here,
+        // but since we're using MaterialPageRoute for navigation,
+        // we'll leave it as is.
       },
     );
   }
@@ -96,17 +98,15 @@ class _SplashScreenState extends State<SplashScreen>
 
       // After initialization, navigate to home.
       if (!mounted) return;
-      // Navigator.pushReplacementNamed(context, '/home'); // COMMENTED OUT: '/home' route no longer exists.
 
-      // TEMPORARY: Navigate to a simple placeholder screen until a new '/home' destination is created.
+      // 2. REPLACE PlaceholderHome with DigitalClosetScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const PlaceholderHome()),
+        // The DigitalClosetScreen is the main Widget from your home_closet.dart
+        MaterialPageRoute(builder: (_) => const DigitalClosetScreen()),
       );
     } catch (e) {
-      // If initialization fails, keep showing the splash and log the error.
-      // ignore: avoid_print
-      print('Failed to initialize app: $e');
+      //error
     }
   }
 
@@ -118,6 +118,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    // NOTE: I am assuming AppColors is defined in the imported theme file.
+    // If you still get errors about AppColors, you may need to define it or
+    // replace it with standard Colors.
+    // I'm keeping your original code for AppColors as requested.
     return Scaffold(
       body: Center(
         child: Column(
@@ -144,21 +148,6 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Temporary placeholder for the new destination screen after splash.
-class PlaceholderHome extends StatelessWidget {
-  const PlaceholderHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('App Home')),
-      body: const Center(
-        child: Text('Home Screen (Replace with real content)'),
       ),
     );
   }

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-
-void main() {
-  runApp(const DigitalClosetApp());
-}
+import 'package:dresscode/widgets/clothing_card_row.dart';
+import 'package:dresscode/widgets/button_row.dart';
 
 class DigitalClosetApp extends StatelessWidget {
   const DigitalClosetApp({super.key});
@@ -31,6 +29,7 @@ class DigitalClosetScreen extends StatefulWidget {
 
 class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   late final List<PageController> _pageControllers;
+  // Configuration Variables
   final int _numberOfRows = 4;
   final int _itemsPerRow = 8; // Actual number of items in your list
   final int _virtualItemCount = 10000; // Variables for Infinite Looping
@@ -53,6 +52,8 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
 
     // Listener to force redraw on scroll for the transformation effect
     for (var controller in _pageControllers) {
+      // The listener is still needed here as it calls setState() on the parent State,
+      // which is necessary to re-render the ClothingCard for its transformation logic.
       controller.addListener(() => setState(() {}));
     }
   }
@@ -65,113 +66,25 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     super.dispose();
   }
 
-  // --- Helper Widget for Bottom Action Buttons (Matches Mockup Style) ---
+  void _randomizeClothing() {
+    final Random random = Random();
+    const Duration scrambleDuration = Duration(milliseconds: 700);
+    const Curve scrambleCurve = Curves.easeInOutQuad;
 
-  Widget _buildActionButton(String text) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: ElevatedButton(
-          onPressed: () {
-            debugPrint('$text button pressed');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            textStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
+    for (var controller in _pageControllers) {
+      // Calculate a random target page. We add a few full cycles (e.g., 20)
+      // to the current page number before adding the random item offset.
+      final int newPageOffset =
+          random.nextInt(_itemsPerRow) + (_itemsPerRow * 20);
+      final int targetPage = (_initialPage + newPageOffset);
 
-          child: Text(text),
-        ),
-      ),
-    );
-  }
-
-  // --- Carousel Item with Scale and Vertical Offset Transformation ---
-
-  Widget _buildItemWithTransform({
-    required int index,
-    required PageController controller,
-    required double itemSize,
-  }) {
-    double value = 0.0;
-
-    double currentPage = controller.hasClients && controller.page != null
-        ? controller.page!
-        : _initialPage.toDouble();
-
-    // Calculate the distance from the center page
-    value = currentPage - index;
-    value = value.clamp(-1.0, 1.0);
-
-    // Calculate the real item index for display/content
-    final int realIndex = index % _itemsPerRow;
-
-    // --- Transformation Properties ---
-    const double minScale = 0.35;
-    const double maxVerticalOffset = 10.0;
-    // 1. Scale: Larger in center (1.0), smaller on sides (minScale)
-    final double scale = 1.0 - (value.abs() * (1.0 - minScale));
-    // 2. Vertical Offset: Move item UP (negative Y) proportionally to distance from center
-    final double offsetY = -value.abs() * maxVerticalOffset;
-
-    return Center(
-      child: Transform(
-        // Apply both Translate (vertical offset) and Scale
-        transform: Matrix4.identity()
-          ..translate(0.0, offsetY)
-          ..scale(scale, scale),
-
-        alignment: FractionalOffset.center,
-        child: Container(
-          width: itemSize,
-          height: itemSize,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          child: Center(
-            child: Text(
-              'Item ${realIndex + 1}',
-              style: const TextStyle(color: Colors.black54),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- Helper Widget for the Scroll Row (Carousel) ---
-  Widget _buildCarouselRow(int rowNumber, PageController controller) {
-    const double itemSize = 140.0;
-    return Padding(
-      // Reduced vertical padding
-      padding: const EdgeInsets.symmetric(vertical: 0.5),
-      child: SizedBox(
-        // Height adjusted based on item size and offset
-        height: itemSize,
-        child: PageView.builder(
-          controller: controller,
-          scrollDirection: Axis.horizontal,
-          // Enables infinite looping
-          itemCount: _virtualItemCount,
-          itemBuilder: (context, index) {
-            return _buildItemWithTransform(
-              index: index,
-              controller: controller,
-              itemSize: itemSize,
-            );
-          },
-        ),
-      ),
-    );
+      // Animate to the new random page position
+      controller.animateToPage(
+        targetPage,
+        duration: scrambleDuration,
+        curve: scrambleCurve,
+      );
+    }
   }
 
   // --- Four Scrolling Carousels (Main Content) ---
@@ -180,6 +93,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     return Scaffold(
       body: Column(
         children: <Widget>[
+          // Top padding/margin area
           Container(
             margin: const EdgeInsets.only(bottom: 40),
             padding: const EdgeInsets.all(2),
@@ -190,26 +104,35 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                _buildCarouselRow(1, _pageControllers[0]),
-                _buildCarouselRow(2, _pageControllers[1]),
-                _buildCarouselRow(3, _pageControllers[2]),
-                _buildCarouselRow(4, _pageControllers[3]),
+                // Use the new ClothingCardRow widget
+                ClothingCardRow(
+                  controller: _pageControllers[0],
+                  itemsPerRow: _itemsPerRow,
+                  virtualItemCount: _virtualItemCount,
+                  initialPage: _initialPage,
+                ),
+                ClothingCardRow(
+                  controller: _pageControllers[1],
+                  itemsPerRow: _itemsPerRow,
+                  virtualItemCount: _virtualItemCount,
+                  initialPage: _initialPage,
+                ),
+                ClothingCardRow(
+                  controller: _pageControllers[2],
+                  itemsPerRow: _itemsPerRow,
+                  virtualItemCount: _virtualItemCount,
+                  initialPage: _initialPage,
+                ),
+                ClothingCardRow(
+                  controller: _pageControllers[3],
+                  itemsPerRow: _itemsPerRow,
+                  virtualItemCount: _virtualItemCount,
+                  initialPage: _initialPage,
+                ),
               ],
             ),
           ),
-          // --- Bottom Action Buttons (SAVE, OUTFITS, RANDOMIZE) ---
-          Container(
-            margin: const EdgeInsets.only(bottom: 40),
-            padding: const EdgeInsets.all(2),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _buildActionButton('SAVE'),
-                _buildActionButton('OUTFITS'),
-                _buildActionButton('RANDOMIZE'),
-              ],
-            ),
-          ),
+          ButtonRow(onRandomize: _randomizeClothing),
         ],
       ),
     );
