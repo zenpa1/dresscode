@@ -1,10 +1,11 @@
-// lib/home_closet.dart
+// lib/home_closet.dart (MODIFIED to access SaveOutfitDialog)
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:dresscode/widgets/clothing_card_row.dart';
 import 'package:dresscode/widgets/button_row.dart';
 import 'package:dresscode/widgets/outfit_creation_dialog.dart';
-import 'package:dresscode/utils/app_constants.dart'; // NEW IMPORT
+import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/widgets/save_outfit_dialog.dart';
 
 class DigitalClosetApp extends StatelessWidget {
   const DigitalClosetApp({super.key});
@@ -92,6 +93,62 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     }
   }
 
+  // Helper function to get the currently selected item in a row
+  String? _getCurrentSelectedItem(int rowIndex) {
+    if (rowIndex >= _pageControllers.length) return null;
+
+    final controller = _pageControllers[rowIndex];
+    if (!controller.hasClients || controller.page == null) return null;
+
+    final categoryName = kCategoryOrder[rowIndex];
+    final categoryItems = kMockCategories[categoryName];
+
+    if (categoryItems == null || categoryItems.isEmpty) return null;
+
+    // Calculate the index of the selected item within the category list
+    final actualItemIndex =
+        (controller.page!.round() - _initialPage) % categoryItems.length;
+
+    return '${categoryName}: ${categoryItems[actualItemIndex]}';
+  }
+
+  // 🚨 NEW FUNCTION: Logic to extract items and display the SaveOutfitDialog
+  void _showSaveOutfitDialog() {
+    final List<String> itemsToSave = [];
+
+    // 1. Extract the selected item from each row
+    for (int i = 0; i < _numberOfRows; i++) {
+      final item = _getCurrentSelectedItem(i);
+      if (item != null) {
+        itemsToSave.add(item);
+      }
+    }
+
+    if (itemsToSave.isEmpty) {
+      // Optional: Show a snackbar or simple alert if no items are selected
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one item to save.'),
+        ),
+      );
+      return;
+    }
+
+    // 2. Display the SaveOutfitDialog, passing the list of items
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return SaveOutfitDialog(itemsToSave: itemsToSave);
+      },
+    ).then((confirmed) {
+      if (confirmed == true) {
+        // Handle post-save logic (e.g., clear selection, show confirmation)
+        debugPrint('Outfit successfully confirmed and saved!');
+      }
+    });
+  }
+
+  // This is a placeholder and should be removed if ClothingCardRow handles card tap externally
   void _showClothingCardDialog() {
     showDialog(
       context: context,
@@ -117,7 +174,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
 
       return ClothingCardRow(
         controller: _pageControllers[index],
-        itemsPerRow: itemsCount, // Now using the actual item count
+        itemsPerRow: itemsCount,
         virtualItemCount: _virtualItemCount,
         initialPage: _initialPage,
         onCardTap: _showClothingCardDialog,
@@ -140,7 +197,13 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
               children: cardRows,
             ),
           ),
-          ButtonRow(onRandomize: _randomizeClothing),
+          // 🚨 CONNECTION: Pass the save function to the ButtonRow
+          // NOTE: You must update ButtonRow to accept an 'onSave' callback.
+          ButtonRow(
+            onRandomize: _randomizeClothing,
+            onSave:
+                _showSaveOutfitDialog, // Assuming ButtonRow now accepts this
+          ),
         ],
       ),
     );

@@ -1,9 +1,9 @@
-// lib/widgets/clothing_category_tile.dart (MODIFIED)
+// lib/widgets/clothing_category_tile.dart (MODIFIED - Removed Add Card)
 import 'package:flutter/material.dart';
 
 class ClothingCategoryTile extends StatelessWidget {
   final String categoryName;
-  // This now represents the list of existing items (excluding the Add button)
+  // This now represents the list of existing items
   final List<String> availableItems;
 
   const ClothingCategoryTile({
@@ -30,13 +30,11 @@ class ClothingCategoryTile extends StatelessWidget {
       // Ensure the card takes up the full width in the dialog
       margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
       elevation: 0, // Remove elevation to make it look flat within the dialog
-      // 🚨 Ensure the Card background color is darker than the dialog's white
       color: Colors.grey[100],
 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
 
       child: ExpansionTile(
-        // Ensure the expansion tile background matches the card color
         tilePadding: const EdgeInsets.symmetric(horizontal: 16.0),
 
         // Header Text
@@ -60,59 +58,42 @@ class ClothingCategoryTile extends StatelessWidget {
             child: Wrap(
               spacing: 8.0, // horizontal spacing
               runSpacing: 8.0, // vertical spacing
-              // 1. ADD ITEM CARD (Fixed functionality, always first)
-              children: [
-                GestureDetector(
-                  onTap: _addItem,
+              // 🚨 REMOVED: The GestureDetector and Container for the Add (+) card is gone.
+
+              // 1. EXISTING ITEM CARDS (Deletable on long press)
+              children: availableItems.map((item) {
+                return GestureDetector(
+                  // 🚨 Long press functionality for deletion
+                  onLongPress: () => _deleteItem(item),
                   child: Container(
                     width: 70,
                     height: 70,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.white, // White background for items
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
-                    child: const Center(
-                      child: Icon(Icons.add, size: 30, color: Colors.black54),
-                    ),
-                  ),
-                ),
-
-                // 2. EXISTING ITEM CARDS (Deletable on long press)
-                ...availableItems.map((item) {
-                  return GestureDetector(
-                    // 🚨 Long press functionality for deletion
-                    onLongPress: () => _deleteItem(item),
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: Colors.white, // White background for items
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          item
-                              .split(' ')
-                              .first, // Use first word for cleaner display
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.black,
-                          ),
+                    child: Center(
+                      child: Text(
+                        item
+                            .split(' ')
+                            .first, // Use first word for cleaner display
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ],
+                  ),
+                );
+              }).toList(),
             ),
           ),
           const SizedBox(height: 8),

@@ -1,11 +1,19 @@
+// lib/widgets/button_row.dart (MODIFIED to include onSave callback)
+
 import 'package:flutter/material.dart';
 import 'package:dresscode/screens/outfits.dart';
 import 'custom_button.dart';
 
 class ButtonRow extends StatelessWidget {
   final VoidCallback? onRandomize;
+  // 🚨 NEW PARAMETER: Callback for the SAVE action
+  final VoidCallback? onSave;
 
-  const ButtonRow({super.key, this.onRandomize});
+  const ButtonRow({
+    super.key,
+    this.onRandomize,
+    this.onSave, // 🚨 Include the new parameter in the constructor
+  });
 
   // 2. Navigation Function
   void _navigateToOutfits(BuildContext context) {
@@ -21,9 +29,10 @@ class ButtonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Helper function for buttons that don't need context or have simple actions
-    void defaultOnPressed(BuildContext ctx) {
-      debugPrint('Button pressed');
-    }
+    // NOTE: We don't need this defaultOnPressed function anymore as we handle all three buttons
+    // void defaultOnPressed(BuildContext ctx) {
+    //   debugPrint('Button pressed');
+    // }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 40),
@@ -31,22 +40,33 @@ class ButtonRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          // 1. SAVE Button (Connected to the new onSave callback)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: CustomButton(text: 'SAVE', onPressed: defaultOnPressed),
+              child: CustomButton(
+                text: 'SAVE',
+                onPressed: (ctx) {
+                  // 🚨 Hookup: Call the onSave callback
+                  onSave?.call();
+                },
+              ),
             ),
           ),
+
+          // 2. OUTFITS Button (Navigation)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: CustomButton(
                 text: 'OUTFITS',
-                // 3. Hookup: Use anonymous function to correctly pass context to the method
+                // Hookup: Use anonymous function to correctly pass context to the method
                 onPressed: (ctx) => _navigateToOutfits(ctx),
               ),
             ),
           ),
+
+          // 3. RANDOMIZE Button (Connected to the onRandomize callback)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
