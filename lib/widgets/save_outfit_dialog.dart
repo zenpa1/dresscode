@@ -162,9 +162,6 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'CANCEL',
-                      backgroundColor: Colors.white,
-                      textColor: Colors.black87,
-                      borderColor: Colors.black87,
                       onPressed: (ctx) => Navigator.pop(ctx, false),
                     ),
                   ),
