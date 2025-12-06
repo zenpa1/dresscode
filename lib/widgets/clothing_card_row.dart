@@ -7,6 +7,8 @@ class ClothingCardRow extends StatelessWidget {
   final int itemsPerRow;
   final int virtualItemCount;
   final int initialPage;
+  // 🚨 NEW PROPERTY: Callback function for card tap
+  final VoidCallback? onCardTap;
   final double itemSize = 140.0;
 
   const ClothingCardRow({
@@ -15,6 +17,8 @@ class ClothingCardRow extends StatelessWidget {
     required this.itemsPerRow,
     required this.virtualItemCount,
     required this.initialPage,
+    // 🚨 NEW: Include in constructor
+    this.onCardTap,
   });
 
   @override
@@ -37,6 +41,8 @@ class ClothingCardRow extends StatelessWidget {
               itemSize: itemSize,
               itemsPerRow: itemsPerRow,
               initialPage: initialPage,
+              // 🚨 MODIFIED: Pass the tap function down
+              onCardTap: onCardTap,
             );
           },
         ),

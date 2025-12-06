@@ -1,7 +1,8 @@
 // lib/screens/outfits.dart
 import 'package:flutter/material.dart';
-import 'package:dresscode/widgets/outfit_container.dart'; // Import for list items
+import 'package:dresscode/widgets/outfit_container.dart';
 import 'package:dresscode/widgets/closet_navigation_row.dart';
+import 'package:dresscode/utils/app_constants.dart';
 
 // Convert OutfitsScreen to a StatefulWidget to manage the search state
 class OutfitsScreen extends StatefulWidget {
@@ -12,25 +13,8 @@ class OutfitsScreen extends StatefulWidget {
 }
 
 class _OutfitsScreenState extends State<OutfitsScreen> {
-  // Placeholder data and filtering logic (moved from OutfitSearchBarAndList)
-  final List<Map<String, dynamic>> _allOutfits = const [
-    {
-      'name': 'Casual Weekend',
-      'items': ['Blue Tee', 'Denim Jeans', 'White Sneakers'],
-    },
-    {
-      'name': 'Office Smart',
-      'items': ['White Shirt', 'Grey Trousers', 'Black Blazer', 'Loafers'],
-    },
-    {
-      'name': 'Gym Ready',
-      'items': ['Sports Bra', 'Black Leggings', 'Running Shoes'],
-    },
-    {
-      'name': 'Casual Friday',
-      'items': ['Polo', 'Khakis', 'Boat Shoes'],
-    },
-  ];
+  // look at app_constants for this
+  final List<Map<String, dynamic>> _allOutfits = kMockOutfits;
 
   List<Map<String, dynamic>> _filteredOutfits = [];
 
@@ -55,7 +39,6 @@ class _OutfitsScreenState extends State<OutfitsScreen> {
       _filteredOutfits = results;
     });
   }
-  // End of logic moved from OutfitSearchBarAndList
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +46,7 @@ class _OutfitsScreenState extends State<OutfitsScreen> {
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            // 1. FIXED SEARCH BAR AREA
             Container(
-              // Top spacing (margin: const EdgeInsets.only(bottom: 40) is NOT used here,
-              // as the search bar itself provides visual spacing.
-              // We'll use padding for the layout.)
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 10.0,
@@ -83,8 +62,6 @@ class _OutfitsScreenState extends State<OutfitsScreen> {
                 ),
               ),
             ),
-
-            // 2. SCROLLABLE CONTENT (EXPANDED)
             Expanded(
               child: _filteredOutfits.isNotEmpty
                   ? ListView.builder(
@@ -99,8 +76,6 @@ class _OutfitsScreenState extends State<OutfitsScreen> {
                     )
                   : const Center(child: Text('No matching outfits found.')),
             ),
-
-            // 3. FIXED BOTTOM BUTTON ROW (Pushed to the bottom by the Expanded widget)
             const ClosetNavigationRow(),
           ],
         ),

@@ -1,7 +1,10 @@
+// lib/home_closet.dart
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:dresscode/widgets/clothing_card_row.dart';
 import 'package:dresscode/widgets/button_row.dart';
+import 'package:dresscode/widgets/outfit_creation_dialog.dart';
+import 'package:dresscode/utils/app_constants.dart'; // NEW IMPORT
 
 class DigitalClosetApp extends StatelessWidget {
   const DigitalClosetApp({super.key});
@@ -29,13 +32,12 @@ class DigitalClosetScreen extends StatefulWidget {
 
 class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   late final List<PageController> _pageControllers;
-  // Configuration Variables
-  final int _numberOfRows = 4;
-  final int _itemsPerRow = 8; // Actual number of items in your list
-  final int _virtualItemCount = 10000; // Variables for Infinite Looping
-  final int _initialPage = 4000; // Starts on Item 1 (index 0)
+
+  // Configuration Variables based on central data
+  final int _numberOfRows = kCategoryOrder.length;
+  final int _virtualItemCount = 10000;
+  final int _initialPage = 4000;
   final double _viewportFraction = 0.35;
-  // Viewport fraction is set for 3 items: 1 centered, 2 partial on sides.
 
   @override
   void initState() {
@@ -43,7 +45,6 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
 
     _pageControllers = List.generate(
       _numberOfRows,
-
       (index) => PageController(
         viewportFraction: _viewportFraction,
         initialPage: _initialPage,
@@ -52,8 +53,6 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
 
     // Listener to force redraw on scroll for the transformation effect
     for (var controller in _pageControllers) {
-      // The listener is still needed here as it calls setState() on the parent State,
-      // which is necessary to re-render the ClothingCard for its transformation logic.
       controller.addListener(() => setState(() {}));
     }
   }
@@ -71,25 +70,60 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     const Duration scrambleDuration = Duration(milliseconds: 700);
     const Curve scrambleCurve = Curves.easeInOutQuad;
 
-    for (var controller in _pageControllers) {
-      // Calculate a random target page. We add a few full cycles (e.g., 20)
-      // to the current page number before adding the random item offset.
-      final int newPageOffset =
-          random.nextInt(_itemsPerRow) + (_itemsPerRow * 20);
-      final int targetPage = (_initialPage + newPageOffset);
+    for (int i = 0; i < _pageControllers.length; i++) {
+      final controller = _pageControllers[i];
 
-      // Animate to the new random page position
-      controller.animateToPage(
-        targetPage,
-        duration: scrambleDuration,
-        curve: scrambleCurve,
-      );
+      // Get the number of items for the current category row from central data
+      final categoryName = kCategoryOrder[i];
+      final itemsCount = kMockCategories[categoryName]?.length ?? 0;
+
+      if (itemsCount > 0) {
+        // Calculate a random target page based on itemsCount
+        final int newPageOffset =
+            random.nextInt(itemsCount) + (itemsCount * 20);
+        final int targetPage = (_initialPage + newPageOffset);
+
+        controller.animateToPage(
+          targetPage,
+          duration: scrambleDuration,
+          curve: scrambleCurve,
+        );
+      }
     }
+  }
+
+  void _showClothingCardDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const OutfitCreationDialog();
+      },
+    );
   }
 
   // --- Four Scrolling Carousels (Main Content) ---
   @override
   Widget build(BuildContext context) {
+    // Dynamically generate rows based on the category list
+    final List<Widget> cardRows = kCategoryOrder.asMap().entries.map((entry) {
+      final index = entry.key;
+      final categoryName = entry.value;
+
+      final itemsCount = kMockCategories[categoryName]?.length ?? 0;
+
+      if (index >= _pageControllers.length || itemsCount == 0) {
+        return const SizedBox.shrink();
+      }
+
+      return ClothingCardRow(
+        controller: _pageControllers[index],
+        itemsPerRow: itemsCount, // Now using the actual item count
+        virtualItemCount: _virtualItemCount,
+        initialPage: _initialPage,
+        onCardTap: _showClothingCardDialog,
+      );
+    }).toList();
+
     return Scaffold(
       body: Column(
         children: <Widget>[
@@ -103,33 +137,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                // Use the new ClothingCardRow widget
-                ClothingCardRow(
-                  controller: _pageControllers[0],
-                  itemsPerRow: _itemsPerRow,
-                  virtualItemCount: _virtualItemCount,
-                  initialPage: _initialPage,
-                ),
-                ClothingCardRow(
-                  controller: _pageControllers[1],
-                  itemsPerRow: _itemsPerRow,
-                  virtualItemCount: _virtualItemCount,
-                  initialPage: _initialPage,
-                ),
-                ClothingCardRow(
-                  controller: _pageControllers[2],
-                  itemsPerRow: _itemsPerRow,
-                  virtualItemCount: _virtualItemCount,
-                  initialPage: _initialPage,
-                ),
-                ClothingCardRow(
-                  controller: _pageControllers[3],
-                  itemsPerRow: _itemsPerRow,
-                  virtualItemCount: _virtualItemCount,
-                  initialPage: _initialPage,
-                ),
-              ],
+              children: cardRows,
             ),
           ),
           ButtonRow(onRandomize: _randomizeClothing),
