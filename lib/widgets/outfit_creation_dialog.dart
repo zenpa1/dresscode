@@ -1,24 +1,25 @@
-// lib/widgets/outfit_creation_dialog.dart (MODIFIED TO OPEN ADDITEMDIALOG)
+// lib/widgets/outfit_creation_dialog.dart (Type Fix for ClothingItem)
+
 import 'package:flutter/material.dart';
 import 'clothing_category_tile.dart';
 import 'custom_button.dart';
+// 🚨 NEW IMPORT NEEDED: Bring in the ClothingItem class definition
 import 'package:dresscode/utils/app_constants.dart';
 import 'add_item_dialog.dart';
 
 class OutfitCreationDialog extends StatelessWidget {
   const OutfitCreationDialog({super.key});
 
-  final Map<String, List<String>> _categories = kMockCategories;
+  // 🚨 FIX 1: Change the field type to List<ClothingItem>
+  final Map<String, List<ClothingItem>> _categories = kMockCategories;
 
-  // 🚨 MODIFIED FUNCTIONALITY: Opens the AddItemDialog
+  // MODIFIED FUNCTIONALITY: Opens the AddItemDialog
   void _onAddItemPressed(BuildContext context) {
     debugPrint('ADD AN ITEM button pressed. Opening AddItemDialog.');
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // Since we removed the categoryName parameter from AddItemDialog
-        // in the last "undo" step, we instantiate it without a required parameter.
         return const AddItemDialog();
       },
     );
@@ -34,13 +35,13 @@ class OutfitCreationDialog extends StatelessWidget {
         height: MediaQuery.of(context).size.height * 0.70,
         child: Column(
           children: <Widget>[
-            // Dialog Header
+            // Dialog Header (Unchanged)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 children: [
                   const Text(
-                    'Create New Outfit', // Changed text to reflect Outfit creation purpose
+                    'Create New Outfit',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const Divider(height: 20),
@@ -48,19 +49,21 @@ class OutfitCreationDialog extends StatelessWidget {
               ),
             ),
 
-            // Collapsible Cards Section (The main scrollable content)
+            // Collapsible Cards Section
             Expanded(
               child: ListView(
                 children: _categories.entries.map((entry) {
                   return ClothingCategoryTile(
                     categoryName: entry.key,
+                    // 🚨 FIX 2: availableItems now passes List<ClothingItem>
+                    // Note: ClothingCategoryTile MUST be updated next.
                     availableItems: entry.value,
                   );
                 }).toList(),
               ),
             ),
 
-            // Full-Width Button Area
+            // Full-Width Button Area (Unchanged)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(8.0),
@@ -76,8 +79,8 @@ class OutfitCreationDialog extends StatelessWidget {
               ),
               child: CustomButton(
                 text: 'ADD AN ITEM',
-                // 🚨 CONNECTED: Now calls the function to open the dialog
-                onPressed: _onAddItemPressed,
+                // Updated to correctly call the function with context
+                onPressed: (_) => _onAddItemPressed(context),
               ),
             ),
           ],

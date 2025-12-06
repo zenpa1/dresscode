@@ -53,7 +53,7 @@ class ClothingCard extends StatelessWidget {
             width: itemSize,
             height: itemSize,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(15.0),
             ),
             child: Center(

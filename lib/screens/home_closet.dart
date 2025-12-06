@@ -1,4 +1,5 @@
-// lib/home_closet.dart (MODIFIED to access SaveOutfitDialog)
+// lib/screens/home_closet.dart (COMPLETE, FIXED, and SCALING RESTORED)
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:dresscode/widgets/clothing_card_row.dart';
@@ -7,6 +8,7 @@ import 'package:dresscode/widgets/outfit_creation_dialog.dart';
 import 'package:dresscode/utils/app_constants.dart';
 import 'package:dresscode/widgets/save_outfit_dialog.dart';
 
+// --- MISSING CLASS DEFINITIONS (Fixes "Type not found" error) ---
 class DigitalClosetApp extends StatelessWidget {
   const DigitalClosetApp({super.key});
 
@@ -30,6 +32,7 @@ class DigitalClosetScreen extends StatefulWidget {
   @override
   State<DigitalClosetScreen> createState() => _DigitalClosetScreenState();
 }
+// --- END MISSING CLASS DEFINITIONS ---
 
 class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   late final List<PageController> _pageControllers;
@@ -52,7 +55,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       ),
     );
 
-    // Listener to force redraw on scroll for the transformation effect
+    // SCALING RESTORATION
     for (var controller in _pageControllers) {
       controller.addListener(() => setState(() {}));
     }
@@ -74,12 +77,10 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     for (int i = 0; i < _pageControllers.length; i++) {
       final controller = _pageControllers[i];
 
-      // Get the number of items for the current category row from central data
       final categoryName = kCategoryOrder[i];
       final itemsCount = kMockCategories[categoryName]?.length ?? 0;
 
       if (itemsCount > 0) {
-        // Calculate a random target page based on itemsCount
         final int newPageOffset =
             random.nextInt(itemsCount) + (itemsCount * 20);
         final int targetPage = (_initialPage + newPageOffset);
@@ -94,29 +95,27 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   }
 
   // Helper function to get the currently selected item in a row
-  String? _getCurrentSelectedItem(int rowIndex) {
+  ClothingItem? _getCurrentSelectedItem(int rowIndex) {
     if (rowIndex >= _pageControllers.length) return null;
 
     final controller = _pageControllers[rowIndex];
     if (!controller.hasClients || controller.page == null) return null;
 
     final categoryName = kCategoryOrder[rowIndex];
-    final categoryItems = kMockCategories[categoryName];
+    final List<ClothingItem>? categoryItems = kMockCategories[categoryName];
 
     if (categoryItems == null || categoryItems.isEmpty) return null;
 
-    // Calculate the index of the selected item within the category list
     final actualItemIndex =
         (controller.page!.round() - _initialPage) % categoryItems.length;
 
-    return '${categoryName}: ${categoryItems[actualItemIndex]}';
+    return categoryItems[actualItemIndex];
   }
 
-  // 🚨 NEW FUNCTION: Logic to extract items and display the SaveOutfitDialog
+  // Logic to extract items and display the SaveOutfitDialog
   void _showSaveOutfitDialog() {
-    final List<String> itemsToSave = [];
+    final List<ClothingItem> itemsToSave = [];
 
-    // 1. Extract the selected item from each row
     for (int i = 0; i < _numberOfRows; i++) {
       final item = _getCurrentSelectedItem(i);
       if (item != null) {
@@ -125,7 +124,6 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     }
 
     if (itemsToSave.isEmpty) {
-      // Optional: Show a snackbar or simple alert if no items are selected
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select at least one item to save.'),
@@ -134,7 +132,6 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       return;
     }
 
-    // 2. Display the SaveOutfitDialog, passing the list of items
     showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -142,13 +139,11 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       },
     ).then((confirmed) {
       if (confirmed == true) {
-        // Handle post-save logic (e.g., clear selection, show confirmation)
         debugPrint('Outfit successfully confirmed and saved!');
       }
     });
   }
 
-  // This is a placeholder and should be removed if ClothingCardRow handles card tap externally
   void _showClothingCardDialog() {
     showDialog(
       context: context,
@@ -161,20 +156,21 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   // --- Four Scrolling Carousels (Main Content) ---
   @override
   Widget build(BuildContext context) {
-    // Dynamically generate rows based on the category list
     final List<Widget> cardRows = kCategoryOrder.asMap().entries.map((entry) {
       final index = entry.key;
       final categoryName = entry.value;
 
-      final itemsCount = kMockCategories[categoryName]?.length ?? 0;
+      final List<ClothingItem>? categoryItems = kMockCategories[categoryName];
 
-      if (index >= _pageControllers.length || itemsCount == 0) {
+      if (index >= _pageControllers.length ||
+          categoryItems == null ||
+          categoryItems.isEmpty) {
         return const SizedBox.shrink();
       }
 
       return ClothingCardRow(
         controller: _pageControllers[index],
-        itemsPerRow: itemsCount,
+        categoryItems: categoryItems,
         virtualItemCount: _virtualItemCount,
         initialPage: _initialPage,
         onCardTap: _showClothingCardDialog,
@@ -197,12 +193,9 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
               children: cardRows,
             ),
           ),
-          // 🚨 CONNECTION: Pass the save function to the ButtonRow
-          // NOTE: You must update ButtonRow to accept an 'onSave' callback.
           ButtonRow(
             onRandomize: _randomizeClothing,
-            onSave:
-                _showSaveOutfitDialog, // Assuming ButtonRow now accepts this
+            onSave: _showSaveOutfitDialog,
           ),
         ],
       ),

@@ -1,10 +1,11 @@
-// lib/widgets/clothing_category_tile.dart (MODIFIED - Removed Add Card)
-import 'package:flutter/material.dart';
+// lib/widgets/clothing_category_tile.dart (UPDATED to display Image)
 
-class ClothingCategoryTile extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:dresscode/utils/app_constants.dart';
+
+class ClothingCategoryTile extends StatefulWidget {
   final String categoryName;
-  // This now represents the list of existing items
-  final List<String> availableItems;
+  final List<ClothingItem> availableItems;
 
   const ClothingCategoryTile({
     super.key,
@@ -12,93 +13,79 @@ class ClothingCategoryTile extends StatelessWidget {
     required this.availableItems,
   });
 
-  // Placeholder function for deletion (don't code logic here)
-  void _deleteItem(String item) {
-    debugPrint('Functionality Placeholder: Delete item $item');
-    // In a real app, this would trigger setState on the parent screen
-  }
+  @override
+  State<ClothingCategoryTile> createState() => _ClothingCategoryTileState();
+}
 
-  // Placeholder function for adding item (don't code logic here)
-  void _addItem() {
-    debugPrint('Functionality Placeholder: Add item to $categoryName');
-    // In a real app, this would trigger a different dialog or screen
-  }
+class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      // Ensure the card takes up the full width in the dialog
-      margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
-      elevation: 0, // Remove elevation to make it look flat within the dialog
-      color: Colors.grey[100],
-
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
-
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16.0),
-
-        // Header Text
-        title: Text(
-          categoryName,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Colors.grey[800], // Darker text for contrast
+    return Column(
+      children: [
+        // --- Header (Tap to Expand/Collapse) ---
+        ListTile(
+          title: Text(
+            widget.categoryName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
+          trailing: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
         ),
 
-        // Content that collapses/expands
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
-              bottom: 12.0,
+        // --- Collapsible Content (The Grid View) ---
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          crossFadeState: _isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          firstChild: const SizedBox(height: 0),
+          secondChild: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
             ),
-            child: Wrap(
-              spacing: 8.0, // horizontal spacing
-              runSpacing: 8.0, // vertical spacing
-              // 🚨 REMOVED: The GestureDetector and Container for the Add (+) card is gone.
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+              ),
+              itemCount: widget.availableItems.length,
+              itemBuilder: (context, index) {
+                final item = widget.availableItems[index];
 
-              // 1. EXISTING ITEM CARDS (Deletable on long press)
-              children: availableItems.map((item) {
-                return GestureDetector(
-                  // 🚨 Long press functionality for deletion
-                  onLongPress: () => _deleteItem(item),
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.white, // White background for items
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        item
-                            .split(' ')
-                            .first, // Use first word for cleaner display
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                        ),
-                      ),
+                return Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    // ⚠️ REMOVED border and color
+                  ),
+                  // 🖼️ NEW CONTENT: Display the image
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      item.imagePath, // Use the imagePath from the data model
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Text(item.name, textAlign: TextAlign.center),
+                        );
+                      },
                     ),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
-          const SizedBox(height: 8),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

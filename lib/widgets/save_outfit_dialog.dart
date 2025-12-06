@@ -1,22 +1,19 @@
-// lib/widgets/save_outfit_dialog.dart (MODIFIED to remove category captions)
+// lib/widgets/save_outfit_dialog.dart (Scaling fix using internal padding/margin)
 
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
+import 'package:dresscode/utils/app_constants.dart';
 
 // A reusable widget to represent a small item card visually
 class _MiniClothingCard extends StatelessWidget {
-  final String text; // Still receiving the full category:item string for now
+  final ClothingItem item;
 
-  const _MiniClothingCard({required this.text});
+  const _MiniClothingCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    // Determine the text to display, simplifying long category: item strings
-    final displayText = text.split(': ').last;
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-      // 🚨 REMOVED: The surrounding Row and Expanded widgets that contained the captions
       child: Center(
         child: Container(
           width: 100, // Fixed width for the card
@@ -34,14 +31,26 @@ class _MiniClothingCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Center(
-            // Placeholder Text (will be replaced by Image.asset)
-            child: Text(
-              displayText,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+          child: Container(
+            padding: const EdgeInsets.all(
+              9.0,
+            ), //MODIFY THIS IMAGE FOR SCALING PLEASE
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                item.imagePath,
+                fit: BoxFit
+                    .contain, // Use .contain to ensure the whole image is visible
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Text(
+                      item.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -51,8 +60,8 @@ class _MiniClothingCard extends StatelessWidget {
 }
 
 class SaveOutfitDialog extends StatefulWidget {
-  // 🚨 REQUIRED PARAMETER: The list of items to be saved in this outfit
-  final List<String> itemsToSave;
+  // ... (Rest of SaveOutfitDialog code remains unchanged) ...
+  final List<ClothingItem> itemsToSave;
 
   const SaveOutfitDialog({super.key, required this.itemsToSave});
 
@@ -61,6 +70,8 @@ class SaveOutfitDialog extends StatefulWidget {
 }
 
 class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
+  // ... (Rest of SaveOutfitDialog code remains unchanged) ...
+
   final TextEditingController _nameController = TextEditingController(
     text: 'My New Outfit',
   );
@@ -90,7 +101,7 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: <Widget>[
-            // 1. Editable Title Area (Unchanged)
+            // 1. Editable Title Area
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: TextFormField(
@@ -121,22 +132,21 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
             // 2. Center Item Display (Vertical Stack of Cards)
             Expanded(
               child: Container(
-                // 🚨 Padding reduced horizontally since captions are gone
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(color: Colors.white),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.center, // Ensure cards stay centered
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: widget.itemsToSave.map((item) {
-                      return _MiniClothingCard(text: item);
+                      return _MiniClothingCard(item: item);
                     }).toList(),
                   ),
                 ),
               ),
             ),
 
-            // 3. Bottom Button Row (Unchanged)
+            // 3. Bottom Button Row
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(8.0),
@@ -152,6 +162,9 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'CANCEL',
+                      backgroundColor: Colors.white,
+                      textColor: Colors.black87,
+                      borderColor: Colors.black87,
                       onPressed: (ctx) => Navigator.pop(ctx, false),
                     ),
                   ),
