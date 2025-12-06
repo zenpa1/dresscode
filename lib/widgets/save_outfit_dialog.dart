@@ -35,10 +35,6 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
 
   @override
   Widget build(BuildContext context) {
-    double dialogHeight = widget.itemsToSave.length > 5
-        ? MediaQuery.of(context).size.height * 0.70
-        : MediaQuery.of(context).size.height * 0.55;
-
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -46,7 +42,7 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
       ),
       child: Container(
         padding: const EdgeInsets.only(top: 20, bottom: 0),
-        height: dialogHeight,
+        height: MediaQuery.of(context).size.height * 0.70,
         width: MediaQuery.of(context).size.width * 0.85,
         child: Column(
           children: <Widget>[
