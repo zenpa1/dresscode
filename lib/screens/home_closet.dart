@@ -178,6 +178,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     }).toList();
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: <Widget>[
           // Top padding/margin area

@@ -1,19 +1,14 @@
-// lib/widgets/outfit_creation_dialog.dart (Type Fix for ClothingItem)
-
 import 'package:flutter/material.dart';
 import 'clothing_category_tile.dart';
 import 'custom_button.dart';
-// 🚨 NEW IMPORT NEEDED: Bring in the ClothingItem class definition
 import 'package:dresscode/utils/app_constants.dart';
 import 'add_item_dialog.dart';
 
 class OutfitCreationDialog extends StatelessWidget {
   const OutfitCreationDialog({super.key});
 
-  // 🚨 FIX 1: Change the field type to List<ClothingItem>
   final Map<String, List<ClothingItem>> _categories = kMockCategories;
 
-  // MODIFIED FUNCTIONALITY: Opens the AddItemDialog
   void _onAddItemPressed(BuildContext context) {
     debugPrint('ADD AN ITEM button pressed. Opening AddItemDialog.');
 
@@ -55,8 +50,6 @@ class OutfitCreationDialog extends StatelessWidget {
                 children: _categories.entries.map((entry) {
                   return ClothingCategoryTile(
                     categoryName: entry.key,
-                    // 🚨 FIX 2: availableItems now passes List<ClothingItem>
-                    // Note: ClothingCategoryTile MUST be updated next.
                     availableItems: entry.value,
                   );
                 }).toList(),
@@ -79,7 +72,6 @@ class OutfitCreationDialog extends StatelessWidget {
               ),
               child: CustomButton(
                 text: 'ADD AN ITEM',
-                // Updated to correctly call the function with context
                 onPressed: (_) => _onAddItemPressed(context),
               ),
             ),

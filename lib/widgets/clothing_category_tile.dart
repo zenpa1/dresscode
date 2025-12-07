@@ -1,5 +1,3 @@
-// lib/widgets/clothing_category_tile.dart (UPDATED to display Image)
-
 import 'package:flutter/material.dart';
 import 'package:dresscode/utils/app_constants.dart';
 
@@ -24,7 +22,6 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // --- Header (Tap to Expand/Collapse) ---
         ListTile(
           title: Text(
             widget.categoryName,
@@ -65,9 +62,7 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
                 return Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    // ⚠️ REMOVED border and color
                   ),
-                  // 🖼️ NEW CONTENT: Display the image
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.asset(

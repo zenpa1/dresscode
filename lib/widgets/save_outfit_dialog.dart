@@ -1,5 +1,3 @@
-// lib/widgets/save_outfit_dialog.dart (Scaling fix using internal padding/margin)
-
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
 import 'package:dresscode/utils/app_constants.dart';
@@ -60,7 +58,6 @@ class _MiniClothingCard extends StatelessWidget {
 }
 
 class SaveOutfitDialog extends StatefulWidget {
-  // ... (Rest of SaveOutfitDialog code remains unchanged) ...
   final List<ClothingItem> itemsToSave;
 
   const SaveOutfitDialog({super.key, required this.itemsToSave});
@@ -70,8 +67,6 @@ class SaveOutfitDialog extends StatefulWidget {
 }
 
 class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
-  // ... (Rest of SaveOutfitDialog code remains unchanged) ...
-
   final TextEditingController _nameController = TextEditingController(
     text: 'My New Outfit',
   );
