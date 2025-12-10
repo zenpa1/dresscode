@@ -93,8 +93,8 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initializeApp() async {
     try {
       // Open boxes here (we registered adapters in main()).
-      await Hive.openBox('closet_box');
-      await Hive.openBox('outfits_box');
+      await Hive.openBox<ClothingItem>('closet_box');
+      await Hive.openBox<Outfit>('outfits_box');
 
       // After initialization, navigate to home.
       if (!mounted) return;

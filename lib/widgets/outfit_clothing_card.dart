@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
 class OutfitClothingCard extends StatelessWidget {
-  final String clothingName;
+  final String label;
+  final String? imagePath;
+  final double itemSize;
 
-  const OutfitClothingCard({super.key, required this.clothingName});
-
-  final double itemSize = 90.0; // Smaller size for outfit display
+  const OutfitClothingCard({
+    super.key,
+    required this.label,
+    this.imagePath,
+    this.itemSize = 90.0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +23,29 @@ class OutfitClothingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
         border: Border.all(color: Colors.grey, width: 0.5),
       ),
-      child: Center(
-        child: Text(
-          clothingName,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.black54, fontSize: 10),
-        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: imagePath != null
+            ? Image.asset(
+                imagePath!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _fallbackLabel();
+                },
+              )
+            : _fallbackLabel(),
+      ),
+    );
+  }
+
+  Widget _fallbackLabel() {
+    return Container(
+      color: Colors.grey[300],
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.black54, fontSize: 10),
       ),
     );
   }
