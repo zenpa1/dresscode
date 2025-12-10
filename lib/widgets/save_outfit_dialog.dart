@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
+
 import 'custom_button.dart';
+import 'package:dresscode/models/outfit.dart';
 import 'package:dresscode/utils/app_constants.dart';
 
 // A reusable widget to represent a small item card visually
@@ -164,11 +168,46 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'CONFIRM',
-                      onPressed: (ctx) {
-                        final outfitName = _nameController.text;
-                        debugPrint(
-                          'Confirmed saving outfit: $outfitName with ${widget.itemsToSave.length} items',
+                      onPressed: (ctx) async {
+                        final outfitName = _nameController.text.trim();
+
+                        // Map selected items to their slots by category. If a category
+                        // is missing, keep it null.
+                        String? hatId;
+                        String? topId;
+                        String? bottomId;
+                        String? shoesId;
+
+                        for (final item in widget.itemsToSave) {
+                          switch (item.category.toLowerCase()) {
+                            case 'hat':
+                              hatId ??= item.id;
+                              break;
+                            case 'top':
+                              topId ??= item.id;
+                              break;
+                            case 'bottom':
+                              bottomId ??= item.id;
+                              break;
+                            case 'shoes':
+                              shoesId ??= item.id;
+                              break;
+                          }
+                        }
+
+                        final box = Hive.box<Outfit>('outfits_box');
+                        final id = const Uuid().v4();
+                        final outfit = Outfit(
+                          id: id,
+                          name: outfitName.isEmpty ? null : outfitName,
+                          hatId: hatId,
+                          topId: topId,
+                          bottomId: bottomId,
+                          shoesId: shoesId,
+                          savedAt: DateTime.now(),
                         );
+
+                        await box.put(id, outfit);
                         Navigator.pop(ctx, true);
                       },
                     ),
