@@ -59,6 +59,20 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     for (var controller in _pageControllers) {
       controller.addListener(() => setState(() {}));
     }
+
+    // Ensure controllers have a valid `page` and trigger the initial
+    // scaling calculation after the first frame when the PageViews are
+    // attached to the tree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (var controller in _pageControllers) {
+        if (controller.hasClients) {
+          controller.jumpToPage(_initialPage);
+        }
+      }
+      // Force a rebuild so widgets that depend on controller.page update
+      // their scale immediately when the screen is first shown.
+      setState(() {});
+    });
   }
 
   @override
@@ -123,14 +137,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       }
     }
 
-    if (itemsToSave.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one item to save.'),
-        ),
-      );
-      return;
-    }
+    if (itemsToSave.isEmpty) {}
 
     showDialog<bool>(
       context: context,
@@ -179,26 +186,31 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Column(
-        children: <Widget>[
-          // Top padding/margin area
-          Container(
-            margin: const EdgeInsets.only(bottom: 40),
-            padding: const EdgeInsets.all(2),
-          ),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: cardRows,
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) =>
+            ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+        child: Column(
+          children: <Widget>[
+            // Top padding/margin area
+            Container(
+              margin: const EdgeInsets.only(bottom: 40),
+              padding: const EdgeInsets.all(2),
             ),
-          ),
-          ButtonRow(
-            onRandomize: _randomizeClothing,
-            onSave: _showSaveOutfitDialog,
-          ),
-        ],
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: cardRows,
+              ),
+            ),
+            ButtonRow(
+              onRandomize: _randomizeClothing,
+              onSave: _showSaveOutfitDialog,
+            ),
+          ],
+        ),
       ),
     );
   }

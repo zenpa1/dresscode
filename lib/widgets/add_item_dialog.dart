@@ -19,12 +19,21 @@ class _AddItemDialogState extends State<AddItemDialog> {
 
   // Hold the currently selected category (starts with the first in the list)
   late String _selectedCategory;
+  // Controller for the new item name field
+  late final TextEditingController _itemNameController;
 
   @override
   void initState() {
     super.initState();
     // Initialize state with the first category or a fallback
     _selectedCategory = _categories.isNotEmpty ? _categories.first : 'Other';
+    _itemNameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _itemNameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,7 +83,29 @@ class _AddItemDialogState extends State<AddItemDialog> {
             ),
             const SizedBox(height: 10),
 
-            // 🚨 NEW: Category Dropdown Selector (Before the button row)
+            // NEW: Item name text field (before category selector)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: TextFormField(
+                controller: _itemNameController,
+                decoration: InputDecoration(
+                  labelText: 'Item Name',
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                ),
+              ),
+            ),
+
+            //  Category Dropdown Selector (Before the button row)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,

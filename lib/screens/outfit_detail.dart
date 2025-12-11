@@ -164,185 +164,194 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          // Top title row (centered) with edit icon
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              vertical: 14.0,
-              horizontal: 16.0,
-            ),
-            color: Colors.white,
-            child: Stack(
-              children: [
-                Center(
-                  child: Text(
-                    _nameController.text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    onPressed: _showEditNameDialog,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main scrollable area showing a vertical stack of the outfit items
-          Expanded(
-            child: Container(
-              color: Colors.white,
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) =>
+            ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+        child: Column(
+          children: [
+            // Top title row (centered) with edit icon
+            Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(
+                vertical: 14.0,
                 horizontal: 16.0,
-                vertical: 8.0,
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: _items.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final it = entry.value;
-                    return _MiniDisplayCard(
-                      item: it,
-                      onEditName: () => _editItemName(i),
-                    );
-                  }).toList(),
+              color: Colors.white,
+              child: Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      _nameController.text,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: _showEditNameDialog,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Main scrollable area showing a vertical stack of the outfit items
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: _items.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final it = entry.value;
+                      return _MiniDisplayCard(
+                        item: it,
+                        onEditName: () => _editItemName(i),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Bottom action row: EDIT, OUTFITS, DELETE (uses same spacing as home_closet)
-          Container(
-            margin: const EdgeInsets.only(bottom: 40),
-            padding: const EdgeInsets.all(2),
-            width: double.infinity,
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: CustomButton(
-                      text: 'EDIT',
-                      onPressed: (ctx) {
-                        //TODO: ADD EDIT FUNCTIONALITY
-                        //Redirect to Home with set of clothes and uses the same ID for saving
-                      },
+            // Bottom action row: EDIT, OUTFITS, DELETE (uses same spacing as home_closet)
+            Container(
+              margin: const EdgeInsets.only(bottom: 40),
+              padding: const EdgeInsets.all(2),
+              width: double.infinity,
+              decoration: const BoxDecoration(color: Colors.white),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: CustomButton(
+                        text: 'EDIT',
+                        onPressed: (ctx) {
+                          //TODO: ADD EDIT FUNCTIONALITY
+                          //Redirect to Home with set of clothes and uses the same ID for saving
+                        },
+                      ),
                     ),
                   ),
-                ),
 
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: CustomButton(
-                      text: 'OUTFITS',
-                      onPressed: (ctx) {
-                        // Replace the current detail route with the Outfits screen
-                        // so that "CLOSET" (which pops) returns to the closet
-                        Navigator.pushReplacement(
-                          ctx,
-                          MaterialPageRoute(builder: (c) => OutfitsScreen()),
-                        );
-                      },
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: CustomButton(
+                        text: 'OUTFITS',
+                        onPressed: (ctx) {
+                          // Replace the current detail route with the Outfits screen
+                          // so that "CLOSET" (which pops) returns to the closet
+                          Navigator.pushReplacement(
+                            ctx,
+                            MaterialPageRoute(builder: (c) => OutfitsScreen()),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
 
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: CustomButton(
-                      text: 'DELETE',
-                      onPressed: (ctx) async {
-                        final confirmed = await showDialog<bool>(
-                          context: ctx,
-                          builder: (dCtx) => Dialog(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.all(16.0),
-                              width: MediaQuery.of(dCtx).size.width * 0.85,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    'Delete Outfit',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: CustomButton(
+                        text: 'DELETE',
+                        onPressed: (ctx) async {
+                          final confirmed = await showDialog<bool>(
+                            context: ctx,
+                            builder: (dCtx) => Dialog(
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                width: MediaQuery.of(dCtx).size.width * 0.85,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Delete Outfit',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Are you sure you want to delete this outfit?',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: CustomButton(
-                                          text: 'CANCEL',
-                                          onPressed: (ctx2) =>
-                                              Navigator.of(dCtx).pop(false),
-                                          backgroundColor: Colors.black,
-                                          textColor: Colors.white,
-                                          borderColor: Colors.black,
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Are you sure you want to delete this outfit?',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: CustomButton(
+                                            text: 'CANCEL',
+                                            onPressed: (ctx2) =>
+                                                Navigator.of(dCtx).pop(false),
+                                            backgroundColor: Colors.black,
+                                            textColor: Colors.white,
+                                            borderColor: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: CustomButton(
-                                          text: 'DELETE',
-                                          onPressed: (ctx2) =>
-                                              Navigator.of(dCtx).pop(true),
-                                          backgroundColor: Colors.red.shade700,
-                                          textColor: Colors.white,
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: CustomButton(
+                                            text: 'DELETE',
+                                            onPressed: (ctx2) =>
+                                                Navigator.of(dCtx).pop(true),
+                                            backgroundColor:
+                                                Colors.red.shade700,
+                                            textColor: Colors.white,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-
-                        if (confirmed == true) {
-                          // Close the detail screen after delete confirmation.
-                          Navigator.of(ctx).pop();
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(content: Text('Outfit deleted')),
                           );
-                        }
-                      },
-                      backgroundColor: Colors.red.shade700,
-                      textColor: Colors.white,
+
+                          if (confirmed == true) {
+                            // Close the detail screen after delete confirmation.
+                            Navigator.of(ctx).pop();
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text('Outfit deleted'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                        backgroundColor: Colors.red.shade700,
+                        textColor: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

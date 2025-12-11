@@ -28,12 +28,6 @@ class ButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Helper function for buttons that don't need context or have simple actions
-    // NOTE: We don't need this defaultOnPressed function anymore as we handle all three buttons
-    // void defaultOnPressed(BuildContext ctx) {
-    //   debugPrint('Button pressed');
-    // }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 40),
       padding: const EdgeInsets.all(2),
@@ -47,7 +41,6 @@ class ButtonRow extends StatelessWidget {
               child: CustomButton(
                 text: 'SAVE',
                 onPressed: (ctx) {
-                  // 🚨 Hookup: Call the onSave callback
                   onSave?.call();
                 },
               ),

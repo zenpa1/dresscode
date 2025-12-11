@@ -59,7 +59,7 @@ class ClothingCardRow extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      width: 2.0,
+                      width: 1.0,
                       color: const Color.fromARGB(255, 231, 227, 227),
                     ),
                   ),
