@@ -67,6 +67,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
+    - assets/logo/dresscode_logo_transparent.png
 
   fonts:
     - family: Futura
