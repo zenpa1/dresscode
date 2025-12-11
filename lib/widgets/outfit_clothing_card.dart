@@ -18,11 +18,7 @@ class OutfitClothingCard extends StatelessWidget {
       width: itemSize,
       height: itemSize,
       margin: const EdgeInsets.symmetric(horizontal: 5.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey, width: 0.5),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: imagePath != null

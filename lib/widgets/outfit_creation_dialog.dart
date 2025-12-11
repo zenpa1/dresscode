@@ -62,9 +62,7 @@ class OutfitCreationDialog extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade300, width: 1.0),
-                ),
+                border: Border(),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),

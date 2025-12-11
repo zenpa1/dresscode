@@ -74,9 +74,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
             ),
             const SizedBox(height: 10),
 
-            // ----------------------------------------------------
             // 🚨 NEW: Category Dropdown Selector (Before the button row)
-            // ----------------------------------------------------
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -111,9 +109,45 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 }).toList(),
               ),
             ),
-            // ----------------------------------------------------
 
-            // 3. Action Buttons Row (SAVE, CANCEL, RE-TAKE)
+            // ROW 3
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // UPLOAD
+                  Expanded(
+                    child: CustomButton(
+                      text: 'UPLOAD',
+                      onPressed: (ctx) {
+                        debugPrint(
+                          'Saving item to category: $_selectedCategory',
+                        );
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // TAKE PHOTO
+                  Expanded(
+                    child: CustomButton(
+                      text: 'CAPTURE',
+                      onPressed: (ctx) {
+                        debugPrint('CAMERA FLUTTER');
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            //ROW 4
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -127,17 +161,6 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     child: CustomButton(
                       text: 'CANCEL',
                       onPressed: (ctx) => Navigator.pop(ctx),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // RE-TAKE Button
-                  Expanded(
-                    child: CustomButton(
-                      text: 'TAKE',
-                      onPressed: (ctx) {
-                        debugPrint('TAKE button pressed');
-                      },
                     ),
                   ),
                   const SizedBox(width: 8),
