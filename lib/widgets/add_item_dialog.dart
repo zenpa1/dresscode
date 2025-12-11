@@ -1,7 +1,11 @@
 // lib/widgets/add_item_dialog.dart (MODIFIED to include Dropdown)
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
+// Image picker for camera capture
+import 'package:image_picker/image_picker.dart';
 // 🚨 NEW IMPORT: Access the central category data
 import 'package:dresscode/utils/app_constants.dart';
 
@@ -21,6 +25,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
   late String _selectedCategory;
   // Controller for the new item name field
   late final TextEditingController _itemNameController;
+  // Image picker and captured/uploaded files
+  final ImagePicker _picker = ImagePicker();
+  XFile? _capturedImage;
+  XFile? _uploadedImage;
 
   @override
   void initState() {
@@ -65,18 +73,60 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.grey.shade400),
                   ),
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.photo_camera, size: 50, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          'Tap to select category (Photo Placeholder)',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
+                  child: Center(
+                    child: (_capturedImage == null && _uploadedImage == null)
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.photo_camera,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'No photo yet. \nUse CAPTURE or UPLOAD to add one.',
+                                style: TextStyle(color: Colors.grey),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          )
+                        : (_capturedImage != null && _uploadedImage != null)
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(_capturedImage!.path),
+                                    fit: BoxFit.cover,
+                                    height: 180,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(_uploadedImage!.path),
+                                    fit: BoxFit.cover,
+                                    height: 180,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File((_capturedImage ?? _uploadedImage)!.path),
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -154,11 +204,27 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'UPLOAD',
-                      onPressed: (ctx) {
-                        debugPrint(
-                          'Saving item to category: $_selectedCategory',
-                        );
-                        Navigator.pop(ctx);
+                      onPressed: (ctx) async {
+                        try {
+                          final XFile? photo = await _picker.pickImage(
+                            source: ImageSource.gallery,
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            imageQuality: 85,
+                          );
+                          if (photo != null) {
+                            setState(() {
+                              _uploadedImage = photo;
+                            });
+                          }
+                        } catch (e) {
+                          debugPrint('Gallery pick error: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to pick photo'),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -168,9 +234,27 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'CAPTURE',
-                      onPressed: (ctx) {
-                        debugPrint('CAMERA FLUTTER');
-                        Navigator.pop(ctx);
+                      onPressed: (ctx) async {
+                        try {
+                          final XFile? photo = await _picker.pickImage(
+                            source: ImageSource.camera,
+                            maxWidth: 1920,
+                            maxHeight: 1080,
+                            imageQuality: 85,
+                          );
+                          if (photo != null) {
+                            setState(() {
+                              _capturedImage = photo;
+                            });
+                          }
+                        } catch (e) {
+                          debugPrint('Camera error: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to capture photo'),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),
