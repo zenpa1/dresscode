@@ -42,7 +42,7 @@ const Map<String, List<ClothingItem>> kMockCategories = {
     ),
     ClothingItem(
       id: 'h4',
-      name: 'Sun Hat',
+      name: 'No Hat',
       imagePath: 'assets/images/hat_4.png',
       category: AppCategories.hat,
     ),

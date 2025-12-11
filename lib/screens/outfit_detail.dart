@@ -40,24 +40,52 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
     final controller = TextEditingController(text: _nameController.text);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
-        title: const Text('Edit Outfit Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Outfit name'),
+      builder: (dCtx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dCtx).pop(false),
-            child: const Text('CANCEL'),
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          width: MediaQuery.of(dCtx).size.width * 0.85,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Edit Outfit Name',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: 'Outfit name'),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: 'CANCEL',
+                      onPressed: (ctx2) => Navigator.of(dCtx).pop(false),
+                      backgroundColor: Colors.grey.shade200,
+                      textColor: Colors.black87,
+                      borderColor: Colors.grey.shade400,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CustomButton(
+                      text: 'SAVE',
+                      onPressed: (ctx2) => Navigator.of(dCtx).pop(true),
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dCtx).pop(true);
-            },
-            child: const Text('SAVE'),
-          ),
-        ],
+        ),
       ),
     );
 
@@ -73,22 +101,52 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
     final controller = TextEditingController(text: current);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
-        title: const Text('Edit Item Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Item name'),
+      builder: (dCtx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dCtx).pop(false),
-            child: const Text('CANCEL'),
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          width: MediaQuery.of(dCtx).size.width * 0.85,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Edit Item Name',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: 'Item name'),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: 'CANCEL',
+                      onPressed: (ctx2) => Navigator.of(dCtx).pop(false),
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white,
+                      borderColor: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CustomButton(
+                      text: 'SAVE',
+                      onPressed: (ctx2) => Navigator.of(dCtx).pop(true),
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text('SAVE'),
-          ),
-        ],
+        ),
       ),
     );
 
@@ -182,9 +240,8 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
                     child: CustomButton(
                       text: 'EDIT',
                       onPressed: (ctx) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Edit not implemented')),
-                        );
+                        //TODO: ADD EDIT FUNCTIONALITY
+                        //Redirect to Home with set of clothes and uses the same ID for saving
                       },
                     ),
                   ),
@@ -215,21 +272,57 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
                       onPressed: (ctx) async {
                         final confirmed = await showDialog<bool>(
                           context: ctx,
-                          builder: (dCtx) => AlertDialog(
-                            title: const Text('Delete Outfit'),
-                            content: const Text(
-                              'Are you sure you want to delete this outfit?',
+                          builder: (dCtx) => Dialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0),
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(dCtx).pop(false),
-                                child: const Text('CANCEL'),
+                            child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              width: MediaQuery.of(dCtx).size.width * 0.85,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Delete Outfit',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Are you sure you want to delete this outfit?',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: CustomButton(
+                                          text: 'CANCEL',
+                                          onPressed: (ctx2) =>
+                                              Navigator.of(dCtx).pop(false),
+                                          backgroundColor: Colors.black,
+                                          textColor: Colors.white,
+                                          borderColor: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: CustomButton(
+                                          text: 'DELETE',
+                                          onPressed: (ctx2) =>
+                                              Navigator.of(dCtx).pop(true),
+                                          backgroundColor: Colors.red.shade700,
+                                          textColor: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(dCtx).pop(true),
-                                child: const Text('DELETE'),
-                              ),
-                            ],
+                            ),
                           ),
                         );
 

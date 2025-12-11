@@ -209,6 +209,9 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
 
                         await box.put(id, outfit);
                         Navigator.pop(ctx, true);
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Outfit Saved')),
+                        );
                       },
                     ),
                   ),
