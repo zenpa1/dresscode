@@ -58,12 +58,10 @@ class ClothingCardRow extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2 * scale),
-                        blurRadius: 5 * scale,
-                      ),
-                    ],
+                    border: Border.all(
+                      width: 2.0,
+                      color: const Color.fromARGB(255, 231, 227, 227),
+                    ),
                   ),
                   child: Container(
                     padding: const EdgeInsets.all(

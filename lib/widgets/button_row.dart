@@ -21,7 +21,7 @@ class ButtonRow extends StatelessWidget {
       context,
       MaterialPageRoute(
         // Use OutfitsScreen class name (defined in outfits.dart)
-        builder: (context) => const OutfitsScreen(),
+        builder: (context) => OutfitsScreen(),
       ),
     );
   }

@@ -1,4 +1,3 @@
-// 🚨 NEW CLASS: Data model for a clothing item
 class ClothingItem {
   final String id;
   final String name;
@@ -20,7 +19,7 @@ class AppCategories {
   static const String shoes = 'Shoes';
 }
 
-// 🚨 MODIFIED DATA STRUCTURE: Map now holds a List of ClothingItem objects
+//  Map now holds a List of ClothingItem objects
 const Map<String, List<ClothingItem>> kMockCategories = {
   AppCategories.hat: [
     ClothingItem(
@@ -43,7 +42,7 @@ const Map<String, List<ClothingItem>> kMockCategories = {
     ),
     ClothingItem(
       id: 'h4',
-      name: 'Sun Hat',
+      name: 'No Hat',
       imagePath: 'assets/images/hat_4.png',
       category: AppCategories.hat,
     ),

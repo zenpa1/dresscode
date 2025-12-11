@@ -1,12 +1,17 @@
 // lib/widgets/closet_navigation_row.dart (MODIFIED TO BE LOWER)
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
+import 'package:dresscode/screens/home_closet.dart';
 
 class ClosetNavigationRow extends StatelessWidget {
   const ClosetNavigationRow({super.key});
 
   void _navigateToCloset(BuildContext context) {
-    Navigator.pop(context);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const DigitalClosetScreen()),
+      (route) => false,
+    );
   }
 
   @override
