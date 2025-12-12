@@ -107,9 +107,35 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        _nameController.text = controller.text.trim();
-      });
+      try {
+        final box = Hive.box<Outfit>('outfits_box');
+        final outfit = box.get(widget.outfitId);
+        if (outfit != null) {
+          outfit.name = controller.text.trim();
+          await box.put(widget.outfitId, outfit);
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _nameController.text = controller.text.trim();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Outfit name updated'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating name: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -168,13 +194,38 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
     );
 
     if (confirmed == true) {
-      setState(() {
-        final old = _items[index];
-        _items[index] = OutfitDisplayItem(
-          label: controller.text.trim(),
-          imagePath: old.imagePath,
+      try {
+        final box = Hive.box<Outfit>('outfits_box');
+        final outfit = box.get(widget.outfitId);
+        if (outfit != null) {
+          await box.put(widget.outfitId, outfit);
+        }
+
+        if (!mounted) return;
+        setState(() {
+          final old = _items[index];
+          _items[index] = OutfitDisplayItem(
+            label: controller.text.trim(),
+            imagePath: old.imagePath,
+          );
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Item name updated'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
-      });
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating item: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -413,7 +464,7 @@ class _MiniDisplayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget _fallbackLabel() {
+    Widget fallbackLabel() {
       return Center(
         child: Text(
           item.label,
@@ -434,14 +485,14 @@ class _MiniDisplayCard extends StatelessWidget {
         return Image.file(
           File(path),
           fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+          errorBuilder: (context, error, stackTrace) => fallbackLabel(),
         );
       }
 
       return Image.asset(
         path,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+        errorBuilder: (context, error, stackTrace) => fallbackLabel(),
       );
     }
 
@@ -471,7 +522,7 @@ class _MiniDisplayCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: item.imagePath != null
                   ? buildImage(item.imagePath!)
-                  : _fallbackLabel(),
+                  : fallbackLabel(),
             ),
           ),
 
