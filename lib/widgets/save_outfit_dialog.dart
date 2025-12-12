@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
@@ -11,6 +13,45 @@ class _MiniClothingCard extends StatelessWidget {
   final ClothingItem item;
 
   const _MiniClothingCard({required this.item});
+
+  Widget _buildImage(ClothingItem item) {
+    final imagePath = item.imagePath;
+    final isFilePath =
+        imagePath.startsWith('/') ||
+        imagePath.contains(RegExp(r'^[A-Za-z]:\\')) ||
+        imagePath.contains('/data/') ||
+        imagePath.contains('app_flutter');
+
+    if (isFilePath && File(imagePath).existsSync()) {
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Text(
+              item.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        },
+      );
+    }
+
+    return Image.asset(
+      imagePath,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Center(
+          child: Text(
+            item.name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,20 +80,7 @@ class _MiniClothingCard extends StatelessWidget {
             ), //MODIFY THIS IMAGE FOR SCALING PLEASE
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                item.imagePath,
-                fit: BoxFit
-                    .contain, // Use .contain to ensure the whole image is visible
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Text(
-                      item.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  );
-                },
-              ),
+              child: _buildImage(item),
             ),
           ),
         ),

@@ -8,16 +8,20 @@ class ClothingItem extends HiveObject {
   final String id;
 
   @HiveField(1)
-  final String imagePath;
+  final String name;
 
   @HiveField(2)
-  final String category; // Use `AppCategories` from `lib/utils/app_constants.dart` for allowed values
+  final String imagePath;
 
   @HiveField(3)
+  final String category;
+
+  @HiveField(4)
   final DateTime createdAt;
 
   ClothingItem({
     required this.id,
+    required this.name,
     required this.imagePath,
     required this.category,
     required this.createdAt,

@@ -2,10 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:dresscode/widgets/clothing_card_row.dart';
 import 'package:dresscode/widgets/button_row.dart';
 import 'package:dresscode/widgets/outfit_creation_dialog.dart';
 import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/models/clothing_item.dart' as models;
 import 'package:dresscode/widgets/save_outfit_dialog.dart';
 
 // --- MISSING CLASS DEFINITIONS (Fixes "Type not found" error) ---
@@ -27,7 +29,9 @@ class DigitalClosetApp extends StatelessWidget {
 }
 
 class DigitalClosetScreen extends StatefulWidget {
-  const DigitalClosetScreen({super.key});
+  final Map<String, String>? outfitItemIds;
+
+  const DigitalClosetScreen({super.key, this.outfitItemIds});
 
   @override
   State<DigitalClosetScreen> createState() => _DigitalClosetScreenState();
@@ -36,6 +40,9 @@ class DigitalClosetScreen extends StatefulWidget {
 
 class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
   late final List<PageController> _pageControllers;
+
+  // Cache of category items for use in _getCurrentSelectedItem
+  final Map<String, List<ClothingItem>> _currentCategoryItems = {};
 
   // Configuration Variables based on central data
   final int _numberOfRows = kCategoryOrder.length;
@@ -69,10 +76,49 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
           controller.jumpToPage(_initialPage);
         }
       }
+
+      // If outfit item IDs were provided, position the carousels to show those items
+      if (widget.outfitItemIds != null) {
+        _selectOutfitItems(widget.outfitItemIds!);
+      }
+
       // Force a rebuild so widgets that depend on controller.page update
       // their scale immediately when the screen is first shown.
       setState(() {});
     });
+  }
+
+  /// Positions each carousel to display the outfit's selected items.
+  void _selectOutfitItems(Map<String, String> itemIds) {
+    final categoryToId = {
+      AppCategories.hat: itemIds['hatId'],
+      AppCategories.top: itemIds['topId'],
+      AppCategories.bottom: itemIds['bottomId'],
+      AppCategories.shoes: itemIds['shoesId'],
+    };
+
+    for (int i = 0; i < kCategoryOrder.length; i++) {
+      final categoryName = kCategoryOrder[i];
+      final itemId = categoryToId[categoryName];
+
+      if (itemId == null) continue;
+
+      final items =
+          _currentCategoryItems[categoryName] ??
+          _getItemsForCategory(categoryName);
+      if (items.isEmpty) continue;
+
+      // Find the index of the item with matching ID
+      final itemIndex = items.indexWhere((item) => item.id == itemId);
+      if (itemIndex == -1) continue;
+
+      final controller = _pageControllers[i];
+      if (!controller.hasClients) continue;
+
+      // Jump to the page that would display this item
+      final targetPage = _initialPage + itemIndex;
+      controller.jumpToPage(targetPage);
+    }
   }
 
   @override
@@ -92,7 +138,7 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       final controller = _pageControllers[i];
 
       final categoryName = kCategoryOrder[i];
-      final itemsCount = kMockCategories[categoryName]?.length ?? 0;
+      final itemsCount = _currentCategoryItems[categoryName]?.length ?? 0;
 
       if (itemsCount > 0) {
         final int newPageOffset =
@@ -116,14 +162,21 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     if (!controller.hasClients || controller.page == null) return null;
 
     final categoryName = kCategoryOrder[rowIndex];
-    final List<ClothingItem>? categoryItems = kMockCategories[categoryName];
+
+    // Use the cached items from Hive
+    final List<ClothingItem>? categoryItems =
+        _currentCategoryItems[categoryName];
 
     if (categoryItems == null || categoryItems.isEmpty) return null;
 
     final actualItemIndex =
         (controller.page!.round() - _initialPage) % categoryItems.length;
 
-    return categoryItems[actualItemIndex];
+    final selectedItem = categoryItems[actualItemIndex];
+    debugPrint(
+      '[GET_ITEM] Category: $categoryName, Index: $actualItemIndex/${categoryItems.length}, Item: ${selectedItem.name} (${selectedItem.category})',
+    );
+    return selectedItem;
   }
 
   // Logic to extract items and display the SaveOutfitDialog
@@ -134,6 +187,10 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       final item = _getCurrentSelectedItem(i);
       if (item != null) {
         itemsToSave.add(item);
+
+        debugPrint(
+          '[OUTFIT SAVE] Items being saved: ${itemsToSave.map((i) => '${i.category}:${i.name}').join(', ')}',
+        );
       }
     }
 
@@ -160,58 +217,117 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     );
   }
 
+  // --- Convert Hive models to mock ClothingItem format for display ---
+  List<ClothingItem> _getItemsForCategory(String category) {
+    try {
+      final hiveBox = Hive.box<models.ClothingItem>('closet_box');
+      final hiveItems = hiveBox.values
+          .where((item) => item.category == category)
+          .map(
+            (hiveItem) => ClothingItem(
+              id: hiveItem.id,
+              name: hiveItem.name,
+              imagePath: hiveItem.imagePath,
+              category: hiveItem.category,
+            ),
+          )
+          .toList();
+
+      return hiveItems;
+    } catch (e) {
+      debugPrint('Error getting items for category $category: $e');
+      return [];
+    }
+  }
+
   // --- Four Scrolling Carousels (Main Content) ---
   @override
   Widget build(BuildContext context) {
-    final List<Widget> cardRows = kCategoryOrder.asMap().entries.map((entry) {
-      final index = entry.key;
-      final categoryName = entry.value;
+    try {
+      final closetBox = Hive.box<models.ClothingItem>('closet_box');
+      return ValueListenableBuilder<Box<models.ClothingItem>>(
+        valueListenable: closetBox.listenable(),
+        builder: (context, box, _) {
+          final List<Widget> cardRows = kCategoryOrder.asMap().entries.map((
+            entry,
+          ) {
+            final index = entry.key;
+            final categoryName = entry.value;
 
-      final List<ClothingItem>? categoryItems = kMockCategories[categoryName];
+            final List<ClothingItem> categoryItems = _getItemsForCategory(
+              categoryName,
+            );
 
-      if (index >= _pageControllers.length ||
-          categoryItems == null ||
-          categoryItems.isEmpty) {
-        return const SizedBox.shrink();
-      }
+            // Cache the items for use in _getCurrentSelectedItem
+            _currentCategoryItems[categoryName] = categoryItems;
 
-      return ClothingCardRow(
-        controller: _pageControllers[index],
-        categoryItems: categoryItems,
-        virtualItemCount: _virtualItemCount,
-        initialPage: _initialPage,
-        onCardTap: _showClothingCardDialog,
-      );
-    }).toList();
+            if (index >= _pageControllers.length) {
+              return const SizedBox.shrink();
+            }
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: (_) =>
-            ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-        child: Column(
-          children: <Widget>[
-            // Top padding/margin area
-            Container(
-              margin: const EdgeInsets.only(bottom: 40),
-              padding: const EdgeInsets.all(2),
-            ),
+            if (categoryItems.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'No items in $categoryName yet',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: _showClothingCardDialog,
+                      child: const Text('Add Item'),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-            Expanded(
+            return ClothingCardRow(
+              controller: _pageControllers[index],
+              categoryItems: categoryItems,
+              virtualItemCount: _virtualItemCount,
+              initialPage: _initialPage,
+              onCardTap: _showClothingCardDialog,
+            );
+          }).toList();
+
+          return Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: (_) =>
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar(),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: cardRows,
+                children: <Widget>[
+                  // Top padding/margin area
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 40),
+                    padding: const EdgeInsets.all(2),
+                  ),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: cardRows,
+                    ),
+                  ),
+                  ButtonRow(
+                    onRandomize: _randomizeClothing,
+                    onSave: _showSaveOutfitDialog,
+                  ),
+                ],
               ),
             ),
-            ButtonRow(
-              onRandomize: _randomizeClothing,
-              onSave: _showSaveOutfitDialog,
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error in build: $e');
+      // Fallback UI if Hive is not available
+      return Scaffold(body: Center(child: Text('Error loading closet: $e')));
+    }
   }
 }

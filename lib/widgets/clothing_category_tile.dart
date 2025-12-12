@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/models/clothing_item.dart' as models;
 import 'package:dresscode/widgets/custom_button.dart';
 
 class ClothingCategoryTile extends StatefulWidget {
@@ -21,6 +25,32 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
+    Widget _fallbackLabel(String text) {
+      return Center(child: Text(text, textAlign: TextAlign.center));
+    }
+
+    Widget buildImage(String path, String label) {
+      final isFilePath =
+          path.startsWith('/') ||
+          path.contains(RegExp(r'^[A-Za-z]:\\')) ||
+          path.contains('/data/') ||
+          path.contains('app_flutter');
+
+      if (isFilePath && File(path).existsSync()) {
+        return Image.file(
+          File(path),
+          fit: BoxFit.contain,
+          errorBuilder: (c, e, st) => _fallbackLabel(label),
+        );
+      }
+
+      return Image.asset(
+        path,
+        fit: BoxFit.contain,
+        errorBuilder: (c, e, st) => _fallbackLabel(label),
+      );
+    }
+
     return Column(
       children: [
         ListTile(
@@ -110,16 +140,7 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    item.imagePath,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (c, e, st) => Center(
-                                      child: Text(
-                                        item.name,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
+                                  child: buildImage(item.imagePath, item.name),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -161,13 +182,45 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
                     );
 
                     if (confirmed == true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          duration: Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                          content: Text('Outfit deleted'),
-                        ),
-                      );
+                      try {
+                        // Remove image file if it exists on disk
+                        final path = item.imagePath;
+                        final isFilePath =
+                            path.startsWith('/') ||
+                            path.contains(RegExp(r'^[A-Za-z]:\\')) ||
+                            path.contains('/data/') ||
+                            path.contains('app_flutter');
+                        if (isFilePath) {
+                          final file = File(path);
+                          if (file.existsSync()) {
+                            await file.delete();
+                          }
+                        }
+
+                        // Delete from Hive closet box
+                        final closetBox = Hive.box<models.ClothingItem>(
+                          'closet_box',
+                        );
+                        await closetBox.delete(item.id);
+
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            duration: Duration(seconds: 1),
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('Item deleted'),
+                          ),
+                        );
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('Error deleting item: $e'),
+                          ),
+                        );
+                      }
                     }
                   },
                   child: Container(
@@ -176,15 +229,7 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        item.imagePath, // Use the imagePath from the data model
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Text(item.name, textAlign: TextAlign.center),
-                          );
-                        },
-                      ),
+                      child: buildImage(item.imagePath, item.name),
                     ),
                   ),
                 );
