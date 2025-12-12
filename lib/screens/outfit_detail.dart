@@ -242,7 +242,7 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(
-                vertical: 14.0,
+                vertical: 40.0,
                 horizontal: 16.0,
               ),
               color: Colors.white,
