@@ -260,14 +260,18 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
                         onPressed: (ctx) {
                           // Build a map of outfit item IDs and navigate to closet
                           final outfitItemIds = <String, String>{};
-                          if (widget.hatId != null)
+                          if (widget.hatId != null) {
                             outfitItemIds['hatId'] = widget.hatId!;
-                          if (widget.topId != null)
+                          }
+                          if (widget.topId != null) {
                             outfitItemIds['topId'] = widget.topId!;
-                          if (widget.bottomId != null)
+                          }
+                          if (widget.bottomId != null) {
                             outfitItemIds['bottomId'] = widget.bottomId!;
-                          if (widget.shoesId != null)
+                          }
+                          if (widget.shoesId != null) {
                             outfitItemIds['shoesId'] = widget.shoesId!;
+                          }
 
                           Navigator.of(ctx).pushReplacement(
                             MaterialPageRoute(

@@ -93,7 +93,13 @@ class _OutfitSearchBarAndListState extends State<OutfitSearchBarAndList> {
                     final outfit = _filteredOutfits[index];
                     return OutfitContainer(
                       outfitName: outfit['name'] as String,
-                      clothingItems: outfit['items'] as List<String>,
+                      items:
+                          (outfit['items'] as List<String>?)
+                              ?.map(
+                                (itemId) => OutfitDisplayItem(label: itemId),
+                              )
+                              .toList() ??
+                          [],
                     );
                   },
                 )
