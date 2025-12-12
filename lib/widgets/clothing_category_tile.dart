@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:dresscode/utils/app_constants.dart';
 import 'package:dresscode/models/clothing_item.dart' as models;
 import 'package:dresscode/widgets/custom_button.dart';
+import 'package:dresscode/utils/snackbar_helper.dart';
 
 class ClothingCategoryTile extends StatefulWidget {
   final String categoryName;
@@ -204,21 +205,17 @@ class _ClothingCategoryTileState extends State<ClothingCategoryTile> {
                         await closetBox.delete(item.id);
 
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            duration: Duration(seconds: 1),
-                            behavior: SnackBarBehavior.floating,
-                            content: Text('Item deleted'),
-                          ),
+                        SnackbarHelper.showSnackbar(
+                          context: context,
+                          message: 'Item deleted',
+                          duration: const Duration(seconds: 1),
                         );
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            content: Text('Error deleting item: $e'),
-                          ),
+                        SnackbarHelper.showSnackbar(
+                          context: context,
+                          message: 'Error deleting item: $e',
+                          duration: const Duration(seconds: 2),
                         );
                       }
                     }

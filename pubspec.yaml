@@ -40,6 +40,7 @@ dependencies:
   uuid: ^4.2.0
   image_picker: ^1.2.1
   image_cropper: ^11.0.0
+  flutter_launcher_icons: "^0.13.1"
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,11 @@ flutter:
     - family: Futura
       fonts:
         - asset: assets/fonts/FuturaCyrillicBook.ttf
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo/dresscode_logo_transparent.png"
 
   # To add assets to your application, add an assets section, like this:
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -9,6 +9,7 @@ import 'package:dresscode/widgets/outfit_creation_dialog.dart';
 import 'package:dresscode/utils/app_constants.dart';
 import 'package:dresscode/models/clothing_item.dart' as models;
 import 'package:dresscode/widgets/save_outfit_dialog.dart';
+import 'package:dresscode/utils/snackbar_helper.dart';
 
 // --- MISSING CLASS DEFINITIONS (Fixes "Type not found" error) ---
 class DigitalClosetApp extends StatelessWidget {
@@ -134,6 +135,9 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     const Duration scrambleDuration = Duration(milliseconds: 700);
     const Curve scrambleCurve = Curves.easeInOutQuad;
 
+    // Define a small threshold below which we don't use the large offset
+    const int minItemsForLargeOffset = 3;
+
     for (int i = 0; i < _pageControllers.length; i++) {
       final controller = _pageControllers[i];
 
@@ -141,9 +145,19 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       final itemsCount = _currentCategoryItems[categoryName]?.length ?? 0;
 
       if (itemsCount > 0) {
-        final int newPageOffset =
-            random.nextInt(itemsCount) + (itemsCount * 20);
-        final int targetPage = (_initialPage + newPageOffset);
+        int targetPage;
+
+        if (itemsCount >= minItemsForLargeOffset) {
+          // Use a large offset to create a "scramble" effect for larger lists
+          final int newPageOffset =
+              random.nextInt(itemsCount) + (itemsCount * 20);
+          targetPage = (_initialPage + newPageOffset);
+        } else {
+          // For 1 or 2 items, just pick a random valid index (0 or 1)
+          // Since the PageController often starts at 0, this is sufficient.
+          // It relies on the underlying PageView.builder to handle the wrapping.
+          targetPage = random.nextInt(itemsCount);
+        }
 
         controller.animateToPage(
           targetPage,
@@ -194,7 +208,14 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       }
     }
 
-    if (itemsToSave.isEmpty) {}
+    if (itemsToSave.isEmpty) {
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Please select at least one item to save.',
+        duration: const Duration(seconds: 1),
+      );
+      return;
+    }
 
     showDialog<bool>(
       context: context,
@@ -266,20 +287,45 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
             }
 
             if (categoryItems.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'No items in $categoryName yet',
-                      style: const TextStyle(fontSize: 14),
+              return SizedBox(
+                height: 140.0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 12.0,
+                  ),
+                  child: GestureDetector(
+                    onTap: _showClothingCardDialog,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo,
+                              size: 40,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Add Item',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _showClothingCardDialog,
-                      child: const Text('Add Item'),
-                    ),
-                  ],
+                  ),
                 ),
               );
             }

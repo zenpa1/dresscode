@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'custom_button.dart';
 import 'package:dresscode/models/outfit.dart';
 import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/utils/snackbar_helper.dart';
 
 // A reusable widget to represent a small item card visually
 class _MiniClothingCard extends StatelessWidget {
@@ -237,12 +238,10 @@ class _SaveOutfitDialogState extends State<SaveOutfitDialog> {
 
                         await box.put(id, outfit);
                         Navigator.pop(ctx, true);
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(
-                            duration: Duration(seconds: 1),
-                            behavior: SnackBarBehavior.floating,
-                            content: Text('Outfit Saved'),
-                          ),
+                        SnackbarHelper.showSnackbar(
+                          context: ctx,
+                          message: 'Outfit Saved',
+                          duration: const Duration(seconds: 1),
                         );
                       },
                     ),

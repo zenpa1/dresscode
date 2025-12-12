@@ -9,6 +9,7 @@ import 'custom_button.dart';
 import 'package:dresscode/utils/app_constants.dart';
 import 'package:dresscode/models/clothing_item.dart' as models;
 import 'package:dresscode/services/file_storage_service.dart';
+import 'package:dresscode/utils/snackbar_helper.dart';
 
 // 🚨 CONVERTED to StatefulWidget to manage the dropdown selection state
 class AddItemDialog extends StatefulWidget {
@@ -61,9 +62,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Error picking image: $e',
+      );
     }
   }
 
@@ -80,9 +82,10 @@ class _AddItemDialogState extends State<AddItemDialog> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error capturing image: $e')));
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Error capturing image: $e',
+      );
     }
   }
 
@@ -120,15 +123,17 @@ class _AddItemDialogState extends State<AddItemDialog> {
   /// Save the clothing item to Hive
   Future<void> _saveItemToHive() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an item name')),
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Please enter an item name',
       );
       return;
     }
 
     if (_selectedImage == null && _savedImagePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select or capture an image')),
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Please select or capture an image',
       );
       return;
     }
@@ -170,20 +175,20 @@ class _AddItemDialogState extends State<AddItemDialog> {
       if (!mounted) return;
 
       // Show success message and close dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.name} added to $_selectedCategory'),
-          duration: const Duration(seconds: 2),
-        ),
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: '${item.name} added to $_selectedCategory',
+        duration: const Duration(seconds: 2),
       );
 
       Navigator.pop(context);
     } catch (e) {
       debugPrint('Error in _saveItemToHive: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error saving item: $e')));
+      SnackbarHelper.showSnackbar(
+        context: context,
+        message: 'Error saving item: $e',
+      );
     }
   }
 
@@ -351,6 +356,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'SAVE',
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                       onPressed: (ctx) => _saveItemToHive(),
                     ),
                   ),

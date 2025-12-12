@@ -75,16 +75,23 @@ class ClothingCardRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final itemsCount = categoryItems.length;
     final double itemSize = 140.0;
+    // Use finite list for < 3 items, infinite scroll for >= 3 items
+    final int pageViewItemCount = itemsCount < 3
+        ? itemsCount
+        : virtualItemCount;
 
     return SizedBox(
       height: itemSize,
       child: PageView.builder(
         controller: controller,
-        itemCount: virtualItemCount,
+        itemCount: pageViewItemCount,
         itemBuilder: (context, index) {
           if (itemsCount == 0) return const SizedBox.shrink();
 
-          final actualIndex = (index - initialPage) % itemsCount;
+          // For finite lists, use index directly; for infinite, use modulo
+          final actualIndex = itemsCount < 3
+              ? index
+              : (index - initialPage) % itemsCount;
           final item = categoryItems[actualIndex];
           final scale = getScale(index);
 

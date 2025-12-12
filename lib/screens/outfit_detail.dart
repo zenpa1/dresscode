@@ -8,6 +8,7 @@ import 'package:dresscode/widgets/outfit_container.dart';
 import 'package:dresscode/widgets/custom_button.dart';
 import 'package:dresscode/screens/outfits.dart';
 import 'package:dresscode/screens/home_closet.dart';
+import 'package:dresscode/utils/snackbar_helper.dart';
 
 // Full-screen variant of the SaveOutfitDialog UI. Receives the already
 // assembled outfit data as `outfitName` and a list of `OutfitDisplayItem`.
@@ -376,18 +377,15 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
 
                               // Close the detail screen after delete confirmation.
                               Navigator.of(ctx).pop();
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Outfit deleted'),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
+                              SnackbarHelper.showSnackbar(
+                                context: ctx,
+                                message: 'Outfit deleted',
+                                duration: const Duration(seconds: 1),
                               );
                             } catch (e) {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error deleting outfit: $e'),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
+                              SnackbarHelper.showSnackbar(
+                                context: ctx,
+                                message: 'Error deleting outfit: $e',
                               );
                             }
                           }
