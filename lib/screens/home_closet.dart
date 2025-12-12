@@ -27,7 +27,9 @@ class DigitalClosetApp extends StatelessWidget {
 }
 
 class DigitalClosetScreen extends StatefulWidget {
-  const DigitalClosetScreen({super.key});
+  final Map<String, String>? outfitItemIds;
+
+  const DigitalClosetScreen({super.key, this.outfitItemIds});
 
   @override
   State<DigitalClosetScreen> createState() => _DigitalClosetScreenState();
@@ -69,10 +71,47 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
           controller.jumpToPage(_initialPage);
         }
       }
+
+      // If outfit item IDs were provided, position the carousels to show those items
+      if (widget.outfitItemIds != null) {
+        _selectOutfitItems(widget.outfitItemIds!);
+      }
+
       // Force a rebuild so widgets that depend on controller.page update
       // their scale immediately when the screen is first shown.
       setState(() {});
     });
+  }
+
+  /// Positions each carousel to display the outfit's selected items.
+  void _selectOutfitItems(Map<String, String> itemIds) {
+    final categoryToId = {
+      AppCategories.hat: itemIds['hatId'],
+      AppCategories.top: itemIds['topId'],
+      AppCategories.bottom: itemIds['bottomId'],
+      AppCategories.shoes: itemIds['shoesId'],
+    };
+
+    for (int i = 0; i < kCategoryOrder.length; i++) {
+      final categoryName = kCategoryOrder[i];
+      final itemId = categoryToId[categoryName];
+
+      if (itemId == null) continue;
+
+      final items = kMockCategories[categoryName];
+      if (items == null) continue;
+
+      // Find the index of the item with matching ID
+      final itemIndex = items.indexWhere((item) => item.id == itemId);
+      if (itemIndex == -1) continue;
+
+      final controller = _pageControllers[i];
+      if (!controller.hasClients) continue;
+
+      // Jump to the page that would display this item
+      final targetPage = _initialPage + itemIndex;
+      controller.jumpToPage(targetPage);
+    }
   }
 
   @override

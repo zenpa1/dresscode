@@ -129,8 +129,13 @@ class _OutfitsScreenState extends State<OutfitsScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => OutfitDetailScreen(
+                                outfitId: outfit.id,
                                 outfitName: name,
                                 items: items,
+                                hatId: outfit.hatId,
+                                topId: outfit.topId,
+                                bottomId: outfit.bottomId,
+                                shoesId: outfit.shoesId,
                               ),
                             ),
                           );

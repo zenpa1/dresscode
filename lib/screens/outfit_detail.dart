@@ -1,18 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+import 'package:dresscode/models/outfit.dart';
 import 'package:dresscode/widgets/outfit_container.dart';
 import 'package:dresscode/widgets/custom_button.dart';
 import 'package:dresscode/screens/outfits.dart';
+import 'package:dresscode/screens/home_closet.dart';
 
 // Full-screen variant of the SaveOutfitDialog UI. Receives the already
 // assembled outfit data as `outfitName` and a list of `OutfitDisplayItem`.
 class OutfitDetailScreen extends StatefulWidget {
+  final String outfitId;
   final String outfitName;
   final List<OutfitDisplayItem> items;
+  final String? hatId;
+  final String? topId;
+  final String? bottomId;
+  final String? shoesId;
 
   const OutfitDetailScreen({
     super.key,
+    required this.outfitId,
     required this.outfitName,
     required this.items,
+    this.hatId,
+    this.topId,
+    this.bottomId,
+    this.shoesId,
   });
 
   @override
@@ -244,8 +258,26 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
                       child: CustomButton(
                         text: 'EDIT',
                         onPressed: (ctx) {
-                          //TODO: ADD EDIT FUNCTIONALITY
-                          //Redirect to Home with set of clothes and uses the same ID for saving
+                          // Build a map of outfit item IDs and navigate to closet
+                          final outfitItemIds = <String, String>{};
+                          if (widget.hatId != null)
+                            outfitItemIds['hatId'] = widget.hatId!;
+                          if (widget.topId != null)
+                            outfitItemIds['topId'] = widget.topId!;
+                          if (widget.bottomId != null)
+                            outfitItemIds['bottomId'] = widget.bottomId!;
+                          if (widget.shoesId != null)
+                            outfitItemIds['shoesId'] = widget.shoesId!;
+
+                          Navigator.of(ctx).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => DigitalClosetScreen(
+                                outfitItemIds: outfitItemIds.isNotEmpty
+                                    ? outfitItemIds
+                                    : null,
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -332,14 +364,26 @@ class _OutfitDetailScreenState extends State<OutfitDetailScreen> {
                           );
 
                           if (confirmed == true) {
-                            // Close the detail screen after delete confirmation.
-                            Navigator.of(ctx).pop();
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(
-                                content: Text('Outfit deleted'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            try {
+                              final box = Hive.box<Outfit>('outfits_box');
+                              await box.delete(widget.outfitId);
+
+                              // Close the detail screen after delete confirmation.
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Outfit deleted'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error deleting outfit: $e'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
                           }
                         },
                         backgroundColor: Colors.red.shade700,
