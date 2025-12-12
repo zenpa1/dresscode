@@ -1,4 +1,3 @@
-// lib/widgets/closet_navigation_row.dart (MODIFIED TO BE LOWER)
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
 import 'package:dresscode/screens/home_closet.dart';
@@ -18,7 +17,6 @@ class ClosetNavigationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // 1. Outer Container Styling
     return Container(
-      // 🚨 FIX: Remove or reduce the bottom margin. Set to 0 to align with the SafeArea bottom edge.
       margin: const EdgeInsets.only(bottom: 20),
 
       // Keep padding for internal spacing consistency
