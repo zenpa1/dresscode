@@ -32,16 +32,13 @@ class MyApp extends StatelessWidget {
       routes: {
         // Route '/' points to your animated splash screen
         '/': (_) => const SplashScreen(),
-        // NOTE: You can define an explicit named route for home here,
-        // but since we're using MaterialPageRoute for navigation,
-        // we'll leave it as is.
       },
     );
   }
 }
 
 /// Animated and functional splash screen. It manages the fade-in animation
-/// and triggers Hive initialization and navigation upon completion.
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -118,33 +115,25 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // NOTE: I am assuming AppColors is defined in the imported theme file.
-    // If you still get errors about AppColors, you may need to define it or
-    // replace it with standard Colors.
-    // I'm keeping your original code for AppColors as requested.
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // FadeTransition for box
+            // FadeTransition for logo image
             FadeTransition(
               opacity: _opacityAnimation,
-              child: Container(
+              child: Image.asset(
+                'assets/logo/dresscode_logo_transparent.png',
                 width: 150,
                 height: 150,
-                // Using standard colors as AppColors is not defined in this file.
-                color: AppColors.lightOrange,
-                child: const Icon(Icons.star, size: 50, color: AppColors.dark),
+                fit: BoxFit.fill,
               ),
             ),
             // FadeTransition for text
             FadeTransition(
               opacity: _textOpacityAnimation,
-              child: const Text(
-                'DRESSCODE',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-              ),
+              child: const Text('dresscode', style: TextStyle(fontSize: 30)),
             ),
           ],
         ),
