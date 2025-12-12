@@ -135,6 +135,9 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
     const Duration scrambleDuration = Duration(milliseconds: 700);
     const Curve scrambleCurve = Curves.easeInOutQuad;
 
+    // Define a small threshold below which we don't use the large offset
+    const int minItemsForLargeOffset = 3;
+
     for (int i = 0; i < _pageControllers.length; i++) {
       final controller = _pageControllers[i];
 
@@ -142,9 +145,19 @@ class _DigitalClosetScreenState extends State<DigitalClosetScreen> {
       final itemsCount = _currentCategoryItems[categoryName]?.length ?? 0;
 
       if (itemsCount > 0) {
-        final int newPageOffset =
-            random.nextInt(itemsCount) + (itemsCount * 20);
-        final int targetPage = (_initialPage + newPageOffset);
+        int targetPage;
+
+        if (itemsCount >= minItemsForLargeOffset) {
+          // Use a large offset to create a "scramble" effect for larger lists
+          final int newPageOffset =
+              random.nextInt(itemsCount) + (itemsCount * 20);
+          targetPage = (_initialPage + newPageOffset);
+        } else {
+          // For 1 or 2 items, just pick a random valid index (0 or 1)
+          // Since the PageController often starts at 0, this is sufficient.
+          // It relies on the underlying PageView.builder to handle the wrapping.
+          targetPage = random.nextInt(itemsCount);
+        }
 
         controller.animateToPage(
           targetPage,

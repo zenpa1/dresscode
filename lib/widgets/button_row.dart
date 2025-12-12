@@ -6,14 +6,9 @@ import 'custom_button.dart';
 
 class ButtonRow extends StatelessWidget {
   final VoidCallback? onRandomize;
-  // 🚨 NEW PARAMETER: Callback for the SAVE action
   final VoidCallback? onSave;
 
-  const ButtonRow({
-    super.key,
-    this.onRandomize,
-    this.onSave, // 🚨 Include the new parameter in the constructor
-  });
+  const ButtonRow({super.key, this.onRandomize, this.onSave});
 
   // 2. Navigation Function
   void _navigateToOutfits(BuildContext context) {

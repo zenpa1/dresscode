@@ -356,6 +356,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'SAVE',
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                       onPressed: (ctx) => _saveItemToHive(),
                     ),
                   ),
