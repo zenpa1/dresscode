@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class OutfitClothingCard extends StatelessWidget {
@@ -14,6 +16,28 @@ class OutfitClothingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget buildImage(String path) {
+      final isFilePath =
+          path.startsWith('/') ||
+          path.contains(RegExp(r'^[A-Za-z]:\\')) ||
+          path.contains('/data/') ||
+          path.contains('app_flutter');
+
+      if (isFilePath && File(path).existsSync()) {
+        return Image.file(
+          File(path),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+        );
+      }
+
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+      );
+    }
+
     return Container(
       width: itemSize,
       height: itemSize,
@@ -21,15 +45,7 @@ class OutfitClothingCard extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: imagePath != null
-            ? Image.asset(
-                imagePath!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _fallbackLabel();
-                },
-              )
-            : _fallbackLabel(),
+        child: imagePath != null ? buildImage(imagePath!) : _fallbackLabel(),
       ),
     );
   }

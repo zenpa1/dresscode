@@ -1,13 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'clothing_category_tile.dart';
 import 'custom_button.dart';
 import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/models/clothing_item.dart' as models;
 import 'add_item_dialog.dart';
 
 class OutfitCreationDialog extends StatelessWidget {
   const OutfitCreationDialog({super.key});
-
-  final Map<String, List<ClothingItem>> _categories = kMockCategories;
 
   void _onAddItemPressed(BuildContext context) {
     debugPrint('ADD AN ITEM button pressed. Opening AddItemDialog.');
@@ -22,6 +24,25 @@ class OutfitCreationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final closetBox = Hive.box<models.ClothingItem>('closet_box');
+
+    // Group items by category for display in the expandable tiles
+    final Map<String, List<ClothingItem>> categories = {
+      for (final cat in kCategoryOrder) cat: <ClothingItem>[],
+    };
+    for (final item in closetBox.values) {
+      categories
+          .putIfAbsent(item.category, () => [])
+          .add(
+            ClothingItem(
+              id: item.id,
+              name: item.name,
+              imagePath: item.imagePath,
+              category: item.category,
+            ),
+          );
+    }
+
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -47,7 +68,7 @@ class OutfitCreationDialog extends StatelessWidget {
             // Collapsible Cards Section
             Expanded(
               child: ListView(
-                children: _categories.entries.map((entry) {
+                children: categories.entries.map((entry) {
                   return ClothingCategoryTile(
                     categoryName: entry.key,
                     availableItems: entry.value,

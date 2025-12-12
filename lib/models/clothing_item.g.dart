@@ -18,23 +18,26 @@ class ClothingItemAdapter extends TypeAdapter<ClothingItem> {
     };
     return ClothingItem(
       id: fields[0] as String,
-      imagePath: fields[1] as String,
-      category: fields[2] as String,
-      createdAt: fields[3] as DateTime,
+      name: fields[1] as String,
+      imagePath: fields[2] as String,
+      category: fields[3] as String,
+      createdAt: fields[4] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, ClothingItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.imagePath)
+      ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.category)
+      ..write(obj.imagePath)
       ..writeByte(3)
+      ..write(obj.category)
+      ..writeByte(4)
       ..write(obj.createdAt);
   }
 

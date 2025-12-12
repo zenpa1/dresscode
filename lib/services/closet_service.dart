@@ -24,7 +24,11 @@ class ClosetService {
   /// Save a new clothing item. Copies the provided [imageFile] to the app
   /// documents directory, creates a `ClothingItem` with a new id and current
   /// timestamp, stores it in Hive, and returns the created item.
-  Future<ClothingItem> saveNewItem(File imageFile, String category) async {
+  Future<ClothingItem> saveNewItem(
+    File imageFile,
+    String name,
+    String category,
+  ) async {
     // Save image to disk
     final savedPath = await fileStorageService.saveImageToDisk(imageFile);
 
@@ -32,6 +36,7 @@ class ClosetService {
     final id = _uuid.v4();
     final item = ClothingItem(
       id: id,
+      name: name,
       imagePath: savedPath,
       category: category,
       createdAt: DateTime.now(),
@@ -60,16 +65,16 @@ class ClosetService {
   ClosetData getOrganizedCloset() {
     final values = _box.values.toList();
 
-    List<ClothingItem> _sortedWhere(bool Function(ClothingItem) fn) {
+    List<ClothingItem> sortedWhere(bool Function(ClothingItem) fn) {
       final list = values.where(fn).toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;
     }
 
-    final hats = _sortedWhere((i) => i.category == 'hat');
-    final tops = _sortedWhere((i) => i.category == 'top');
-    final bottoms = _sortedWhere((i) => i.category == 'bottom');
-    final shoes = _sortedWhere((i) => i.category == 'shoes');
+    final hats = sortedWhere((i) => i.category == 'hat');
+    final tops = sortedWhere((i) => i.category == 'top');
+    final bottoms = sortedWhere((i) => i.category == 'bottom');
+    final shoes = sortedWhere((i) => i.category == 'shoes');
 
     return ClosetData(hats: hats, tops: tops, bottoms: bottoms, shoes: shoes);
   }

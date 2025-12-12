@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
@@ -413,6 +415,38 @@ class _MiniDisplayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget _fallbackLabel() {
+      return Center(
+        child: Text(
+          item.label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12),
+        ),
+      );
+    }
+
+    Widget buildImage(String path) {
+      final isFilePath =
+          path.startsWith('/') ||
+          path.contains(RegExp(r'^[A-Za-z]:\\')) ||
+          path.contains('/data/') ||
+          path.contains('app_flutter');
+
+      if (isFilePath && File(path).existsSync()) {
+        return Image.file(
+          File(path),
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+        );
+      }
+
+      return Image.asset(
+        path,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => _fallbackLabel(),
+      );
+    }
+
     // Layout: image container on the left, text + edit icon on the right
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
@@ -438,26 +472,8 @@ class _MiniDisplayCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: item.imagePath != null
-                  ? Image.asset(
-                      item.imagePath!,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        );
-                      },
-                    )
-                  : Center(
-                      child: Text(
-                        item.label,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
+                  ? buildImage(item.imagePath!)
+                  : _fallbackLabel(),
             ),
           ),
 

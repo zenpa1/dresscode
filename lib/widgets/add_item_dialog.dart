@@ -1,13 +1,14 @@
-// lib/widgets/add_item_dialog.dart (MODIFIED to include Dropdown)
-
-import 'dart:io';
+// lib/widgets/add_item_dialog.dart (Implements image picking and Hive saving)
 
 import 'package:flutter/material.dart';
-import 'custom_button.dart';
-// Image picker for camera capture
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-// 🚨 NEW IMPORT: Access the central category data
+import 'package:image_cropper/image_cropper.dart';
+import 'package:hive/hive.dart';
+import 'custom_button.dart';
 import 'package:dresscode/utils/app_constants.dart';
+import 'package:dresscode/models/clothing_item.dart' as models;
+import 'package:dresscode/services/file_storage_service.dart';
 
 // 🚨 CONVERTED to StatefulWidget to manage the dropdown selection state
 class AddItemDialog extends StatefulWidget {
@@ -23,25 +24,167 @@ class _AddItemDialogState extends State<AddItemDialog> {
 
   // Hold the currently selected category (starts with the first in the list)
   late String _selectedCategory;
-  // Controller for the new item name field
-  late final TextEditingController _itemNameController;
-  // Image picker and captured/uploaded files
-  final ImagePicker _picker = ImagePicker();
-  XFile? _capturedImage;
-  XFile? _uploadedImage;
+
+  // Hold the selected image file and path
+  File? _selectedImage;
+  String? _savedImagePath;
+
+  // Text controller for item name
+  late TextEditingController _nameController;
+
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     // Initialize state with the first category or a fallback
     _selectedCategory = _categories.isNotEmpty ? _categories.first : 'Other';
-    _itemNameController = TextEditingController();
+    _nameController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _itemNameController.dispose();
+    _nameController.dispose();
     super.dispose();
+  }
+
+  /// Pick an image from the gallery
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedFile != null) {
+        _selectedImage = File(pickedFile.path);
+        // Optionally crop the image
+        await _cropImage();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+    }
+  }
+
+  /// Capture an image using the camera
+  Future<void> _captureImageWithCamera() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+      );
+      if (pickedFile != null) {
+        _selectedImage = File(pickedFile.path);
+        // Optionally crop the image
+        await _cropImage();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error capturing image: $e')));
+    }
+  }
+
+  /// Crop the selected image
+  Future<void> _cropImage() async {
+    if (_selectedImage == null) return;
+
+    try {
+      final CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: _selectedImage!.path,
+        compressQuality: 100,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: Colors.black,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+          ),
+          IOSUiSettings(title: 'Crop Image', aspectRatioLockEnabled: false),
+        ],
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          _selectedImage = File(croppedFile.path);
+        });
+      }
+    } catch (e) {
+      // Silently ignore crop errors - user can proceed with original image
+      debugPrint('Image crop failed (non-fatal): $e');
+    }
+  }
+
+  /// Save the clothing item to Hive
+  Future<void> _saveItemToHive() async {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an item name')),
+      );
+      return;
+    }
+
+    if (_selectedImage == null && _savedImagePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select or capture an image')),
+      );
+      return;
+    }
+
+    try {
+      // If we have a new image, save it to storage
+      String imagePath = _savedImagePath ?? '';
+      if (_selectedImage != null) {
+        final fileStorageService = FileStorageService();
+        imagePath = await fileStorageService.saveImageToDisk(_selectedImage!);
+        debugPrint('Image saved to: $imagePath');
+      }
+
+      // Create and save the clothing item
+      final item = models.ClothingItem(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text.trim(),
+        imagePath: imagePath,
+        category: _selectedCategory,
+        createdAt: DateTime.now(),
+      );
+
+      debugPrint(
+        'Creating ClothingItem: ${item.id}, ${item.name}, ${item.category}',
+      );
+
+      // Get the closet box and save the item
+      try {
+        final closetBox = Hive.box<models.ClothingItem>('closet_box');
+        debugPrint('closet_box opened successfully');
+
+        await closetBox.put(item.id, item);
+        debugPrint('Item saved to Hive: ${item.id}');
+      } catch (boxError) {
+        debugPrint('Error accessing closet_box: $boxError');
+        throw Exception('Failed to access closet database: $boxError');
+      }
+
+      if (!mounted) return;
+
+      // Show success message and close dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${item.name} added to $_selectedCategory'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint('Error in _saveItemToHive: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving item: $e')));
+    }
   }
 
   @override
@@ -51,7 +194,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.only(top: 20, bottom: 10),
-        height: MediaQuery.of(context).size.height * 0.70,
+        height: MediaQuery.of(context).size.height * 0.85,
         width: MediaQuery.of(context).size.width * 0.85,
 
         child: Column(
@@ -63,7 +206,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
             ),
             const Divider(height: 20),
 
-            // 2. Photo Display Section (Expanded to fill available space)
+            // 2. Photo Display Section
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -73,11 +216,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.grey.shade400),
                   ),
-                  child: Center(
-                    child: (_capturedImage == null && _uploadedImage == null)
-                        ? Column(
+                  child: _selectedImage != null
+                      ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                      : const Center(
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(
                                 Icons.photo_camera,
                                 size: 50,
@@ -85,77 +229,40 @@ class _AddItemDialogState extends State<AddItemDialog> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                'No photo yet. \nUse CAPTURE or UPLOAD to add one.',
+                                'Select or capture a photo',
                                 style: TextStyle(color: Colors.grey),
-                                textAlign: TextAlign.center,
                               ),
                             ],
-                          )
-                        : (_capturedImage != null && _uploadedImage != null)
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(_capturedImage!.path),
-                                    fit: BoxFit.cover,
-                                    height: 180,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(_uploadedImage!.path),
-                                    fit: BoxFit.cover,
-                                    height: 180,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File((_capturedImage ?? _uploadedImage)!.path),
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
                           ),
-                  ),
+                        ),
                 ),
               ),
             ),
             const SizedBox(height: 10),
 
-            // NEW: Item name text field (before category selector)
+            // 3. Item Name Input
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
-              child: TextFormField(
-                controller: _itemNameController,
+              child: TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Item Name',
+                  hintText: 'e.g., Red Sweater',
                   border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(25.0),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+                    horizontal: 16,
+                    vertical: 12,
                   ),
                 ),
               ),
             ),
 
-            //  Category Dropdown Selector (Before the button row)
+            // 4. Category Dropdown Selector
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -165,15 +272,15 @@ class _AddItemDialogState extends State<AddItemDialog> {
                 decoration: InputDecoration(
                   labelText: 'Clothing Category',
                   border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+                    horizontal: 16,
+                    vertical: 12,
                   ),
                 ),
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 isExpanded: true,
                 onChanged: (String? newValue) {
                   setState(() {
@@ -191,7 +298,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               ),
             ),
 
-            // ROW 3
+            // 5. Image Source Buttons (UPLOAD and CAPTURE)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -200,69 +307,27 @@ class _AddItemDialogState extends State<AddItemDialog> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // UPLOAD
+                  // UPLOAD (Gallery)
                   Expanded(
                     child: CustomButton(
-                      text: 'UPLOAD',
-                      onPressed: (ctx) async {
-                        try {
-                          final XFile? photo = await _picker.pickImage(
-                            source: ImageSource.gallery,
-                            maxWidth: 1920,
-                            maxHeight: 1080,
-                            imageQuality: 85,
-                          );
-                          if (photo != null) {
-                            setState(() {
-                              _uploadedImage = photo;
-                            });
-                          }
-                        } catch (e) {
-                          debugPrint('Gallery pick error: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to pick photo'),
-                            ),
-                          );
-                        }
-                      },
+                      text: 'GALLERY',
+                      onPressed: (ctx) => _pickImageFromGallery(),
                     ),
                   ),
                   const SizedBox(width: 8),
 
-                  // TAKE PHOTO
+                  // TAKE PHOTO (Camera)
                   Expanded(
                     child: CustomButton(
-                      text: 'CAPTURE',
-                      onPressed: (ctx) async {
-                        try {
-                          final XFile? photo = await _picker.pickImage(
-                            source: ImageSource.camera,
-                            maxWidth: 1920,
-                            maxHeight: 1080,
-                            imageQuality: 85,
-                          );
-                          if (photo != null) {
-                            setState(() {
-                              _capturedImage = photo;
-                            });
-                          }
-                        } catch (e) {
-                          debugPrint('Camera error: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to capture photo'),
-                            ),
-                          );
-                        }
-                      },
+                      text: 'CAMERA',
+                      onPressed: (ctx) => _captureImageWithCamera(),
                     ),
                   ),
                 ],
               ),
             ),
 
-            //ROW 4
+            // 6. Action Buttons (CANCEL and SAVE)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -276,6 +341,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
                     child: CustomButton(
                       text: 'CANCEL',
                       onPressed: (ctx) => Navigator.pop(ctx),
+                      backgroundColor: Colors.grey.shade300,
+                      textColor: Colors.black87,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -284,12 +351,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
                   Expanded(
                     child: CustomButton(
                       text: 'SAVE',
-                      onPressed: (ctx) {
-                        debugPrint(
-                          'Saving item to category: $_selectedCategory',
-                        );
-                        Navigator.pop(ctx);
-                      },
+                      onPressed: (ctx) => _saveItemToHive(),
                     ),
                   ),
                 ],

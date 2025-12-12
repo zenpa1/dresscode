@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:dresscode/utils/app_constants.dart';
 import 'dart:math';
+import 'dart:io';
 
 class ClothingCardRow extends StatelessWidget {
   final PageController controller;
@@ -28,6 +29,46 @@ class ClothingCardRow extends StatelessWidget {
     final difference = (index - page).abs();
 
     return max(0.5, 1.0 - difference * 0.4);
+  }
+
+  /// Determines if the path is a file system path or asset path and builds the appropriate Image widget
+  Widget _buildImage(ClothingItem item) {
+    final imagePath = item.imagePath;
+
+    if (imagePath.isEmpty) {
+      return Center(child: Text(item.name, textAlign: TextAlign.center));
+    }
+
+    // Check if it's a file system path (absolute path) vs asset path
+    final isFilePath =
+        imagePath.startsWith('/') ||
+        imagePath.contains(RegExp(r'^[A-Za-z]:\\')) || // Windows path
+        imagePath.contains('/data/') ||
+        imagePath.contains('app_flutter');
+
+    if (isFilePath && File(imagePath).existsSync()) {
+      // It's a file system path - use Image.file()
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Text('Error: ${item.name}', textAlign: TextAlign.center),
+          );
+        },
+      );
+    } else {
+      // It's an asset path - use Image.asset()
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Text('Error: ${item.name}', textAlign: TextAlign.center),
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -69,19 +110,7 @@ class ClothingCardRow extends StatelessWidget {
                     ), // MODIFY FOR SCALING PLEASE
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        item.imagePath,
-                        fit: BoxFit
-                            .contain, // Use .contain to see the whole image without cropping
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Text(
-                              'Error: ${item.name}',
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        },
-                      ),
+                      child: _buildImage(item),
                     ),
                   ),
                 ),
